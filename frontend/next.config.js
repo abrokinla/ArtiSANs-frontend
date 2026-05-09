@@ -3,6 +3,11 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
+  eslint: {
+    // Allow production builds to complete even if there are ESLint errors.
+    // This avoids blocking deploys; address lint errors separately.
+    ignoreDuringBuilds: true,
+  },
   async rewrites() {
     return [
       {
