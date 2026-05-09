@@ -34,3 +34,29 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Deploy to Cloudflare Pages
+
+This project includes a workflow and configuration for deploying the static output to Cloudflare Pages. The project build produces static files at `.vercel/output/static` using `@cloudflare/next-on-pages`.
+
+- Add a repository secret named `CF_API_TOKEN` in GitHub with a Cloudflare API token that has Pages write permissions.
+- The included GitHub Actions workflow at `.github/workflows/deploy-pages.yml` builds the site and runs `wrangler pages deploy` when commits are pushed to `main`.
+
+To build locally and deploy from your machine, run:
+
+```bash
+npm ci
+npm run build
+# then deploy using wrangler (requires CF_API_TOKEN env var)
+CF_API_TOKEN=your_token npx wrangler pages deploy .vercel/output/static --branch main --project-name artisans-frontend
+```
+
+If you prefer to use `wrangler deploy` directly, pass the assets flag:
+
+```bash
+npx wrangler deploy --assets=.vercel/output/static
+```
+
+Notes:
+- Environment variables intended for the client are configured in `wrangler.toml` under the `[vars]` table. For production secrets, use Cloudflare Pages environment variables or GitHub secrets instead of committing them to the repository.
+- The `wrangler.toml` in the repository sets `compatibility_date` and an `[assets]` directory so Pages deployment can find the build output.
