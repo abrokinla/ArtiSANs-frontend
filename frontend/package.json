@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "cfbuild": "npx @cloudflare/next-on-pages",
-    "deploy": "wrangler pages deploy .vercel/output/static",
+    "deploy": "wrangler pages deploy .vercel/output/static --project-name artisans-ng",
     "start": "next start",
     "lint": "eslint"
   },
