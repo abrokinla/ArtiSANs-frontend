@@ -1,4 +1,4 @@
-name = "artisans-ng"
+name = "artisans-frontend"
 compatibility_date = "2026-05-08"
 
 pages_build_output_dir = ".vercel/output/static"
