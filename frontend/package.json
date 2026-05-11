@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "opennext build",
-    "preview":"opennext preview",
+    "build": "npx @cloudflare/next-on-pages",
+    "preview": "npx @cloudflare/next-on-pages preview",
     "cfbuild": "npx @cloudflare/next-on-pages",
     "deploy": "wrangler pages deploy .vercel/output",
     "start": "next start",
