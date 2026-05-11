@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "opennext build",
+    "preview":"opennext preview",
     "cfbuild": "npx @cloudflare/next-on-pages",
-    "deploy": "wrangler pages deploy .vercel/output/static --project-name artisans-ng",
+    "deploy": "wrangler pages deploy .vercel/output",
     "start": "next start",
     "lint": "eslint"
   },
