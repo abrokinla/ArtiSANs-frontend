@@ -2,18 +2,17 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'https://artisans-ojzr.onrender.com'],
   },
   eslint: {
-    // Allow production builds to complete even if there are ESLint errors.
-    // This avoids blocking deploys; address lint errors separately.
     ignoreDuringBuilds: true,
   },
   async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000';
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ]
   },
