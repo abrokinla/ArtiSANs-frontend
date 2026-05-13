@@ -3,7 +3,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { createJob, uploadJobImage } from '@/lib/api';
+import { createJob, uploadJobImage, getCategories } from '@/lib/api';
+
+interface Category {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+}
 
 interface JobImage {
   url: string;
@@ -25,6 +32,7 @@ export default function PostJobPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
   const { isLoggedIn, user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +43,21 @@ export default function PostJobPage() {
       router.push('/auth');
     }
   }, [isLoggedIn, router]);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        // Handle both array response and {results: []} DRF pagination
+        const categoryList = Array.isArray(data) ? data : data.results || [];
+        setCategories(categoryList);
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Show access denied message for artisans
   if (isLoggedIn && user?.role !== 'client') {
@@ -206,9 +229,9 @@ export default function PostJobPage() {
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow"
               >
                 <option value="">Select a category</option>
-                <option value="1">Plumbing</option>
-                <option value="2">Electrical</option>
-                <option value="3">Carpentry</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
               </select>
             </div>
 

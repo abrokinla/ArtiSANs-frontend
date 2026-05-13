@@ -52,7 +52,7 @@ export async function login(credentials: { username: string; password: string })
 
 // Categories
 export async function getCategories() {
-  return apiRequest('/categories/');
+  return apiRequest('/categories/list/');
 }
 
 // Artisans
