@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getMyProfile, updateMyProfile, updateArtisanProfile, getArtisanProfile } from '@/lib/api';
+import { getMyProfile, updateMyProfile, updateArtisanProfile, getArtisanProfile, uploadProfileImage } from '@/lib/api';
 import Link from 'next/link';
 
 export default function EditProfilePage() {
@@ -14,6 +14,12 @@ export default function EditProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Image upload state
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile form state
   const [formData, setFormData] = useState({
@@ -109,6 +115,85 @@ export default function EditProfilePage() {
     }));
   };
 
+  const handleUpload = useCallback(async (file: File) => {
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError('Please select a JPEG, PNG, or WebP image.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Image must be smaller than 5MB.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Not authenticated');
+
+      const result = await uploadProfileImage(file, token);
+      setFormData(prev => ({
+        ...prev,
+        profile_picture_url: result.url,
+      }));
+      setSuccess('Profile picture uploaded successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload image. Please try again.');
+      console.error(err);
+    } finally {
+      setUploading(false);
+    }
+  }, []);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleUpload(file);
+    }
+    // Reset input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [handleUpload]);
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleUpload(file);
+    }
+  }, [handleUpload]);
+
+  const handleBrowseClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleRemovePhoto = useCallback(() => {
+    setFormData(prev => ({
+      ...prev,
+      profile_picture_url: '',
+    }));
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -193,6 +278,113 @@ export default function EditProfilePage() {
         )}
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
+          {/* Profile Picture Section */}
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Profile Picture</h2>
+            <div className="flex flex-col items-center gap-4">
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
+              {/* Drop zone / Avatar preview */}
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                onClick={handleBrowseClick}
+                className={`
+                  relative w-32 h-32 rounded-full overflow-hidden cursor-pointer
+                  border-4 transition-all duration-200
+                  ${dragActive
+                    ? 'border-blue-500 bg-blue-50 scale-105'
+                    : 'border-gray-200 hover:border-blue-400 bg-gray-100'}
+                  ${uploading ? 'opacity-70 pointer-events-none' : ''}
+                  shadow-md
+                `}
+              >
+                {formData.profile_picture_url ? (
+                  <img
+                    src={formData.profile_picture_url}
+                    alt="Profile preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="text-xs">No photo</span>
+                  </div>
+                )}
+
+                {/* Upload overlay */}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  </div>
+                )}
+
+                {/* Hover overlay */}
+                {!uploading && (
+                  <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleBrowseClick}
+                  disabled={uploading}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {uploading ? 'Uploading...' : formData.profile_picture_url ? 'Change Photo' : 'Browse Photo'}
+                </button>
+
+                {formData.profile_picture_url && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    disabled={uploading}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Remove
+                  </button>
+                )}
+              </div>
+
+              <p className="text-xs text-gray-500 text-center">
+                JPEG, PNG or WebP. Max 5MB. Drag & drop or click to browse.
+              </p>
+
+              {uploadError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2 rounded-md w-full text-center">
+                  {uploadError}
+                </div>
+              )}
+            </div>
+          </section>
+
           {/* Basic Info Section */}
           <section>
             <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
@@ -266,19 +458,6 @@ export default function EditProfilePage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Profile Picture URL
-                </label>
-                <input
-                  type="url"
-                  name="profile_picture_url"
-                  value={formData.profile_picture_url}
-                  onChange={handleChange}
-                  placeholder="https://example.com/your-photo.jpg"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                />
-              </div>
             </div>
           </section>
 
@@ -323,7 +502,7 @@ export default function EditProfilePage() {
                       name="whatsapp"
                       value={formData.whatsapp}
                       onChange={handleChange}
-                      placeholder="e.g., +2348012345678"
+                      placeholder="e.g., +234****5678"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
                     />
                   </div>
@@ -336,7 +515,7 @@ export default function EditProfilePage() {
                       name="tel"
                       value={formData.tel}
                       onChange={handleChange}
-                      placeholder="e.g., +2348012345678"
+                      placeholder="e.g., +234****5678"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
                     />
                   </div>
@@ -361,7 +540,7 @@ export default function EditProfilePage() {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploading}
               className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Changes'}

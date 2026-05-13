@@ -105,6 +105,26 @@ export async function getMyProfile(token: string) {
   return apiRequest('/profiles/me/', { token });
 }
 
+export async function uploadProfileImage(file: File, token: string): Promise<{ url: string; public_id: string }> {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const response = await fetch(`${API_URL}/profiles/upload_image/`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export async function updateMyProfile(data: any, token: string) {
   return apiRequest('/profiles/me/', {
     method: 'PATCH',
