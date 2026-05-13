@@ -73,6 +73,10 @@ export default function EditProfilePage() {
         const profile = await getMyProfile(token);
         setFormData(prev => ({
           ...prev,
+          // Prefer profile data (fresh from server), fall back to AuthContext user
+          first_name: profile.first_name || user?.first_name || '',
+          last_name: profile.last_name || user?.last_name || '',
+          email: profile.email || user?.email || '',
           phone_number: profile.phone_number || '',
           location: profile.location || '',
           bio: profile.bio || '',
