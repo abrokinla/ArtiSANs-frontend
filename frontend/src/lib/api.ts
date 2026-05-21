@@ -88,6 +88,10 @@ export async function getJobs(params: { status?: string } = {}) {
   return apiRequest(`/jobs/?${query.toString()}`);
 }
 
+export async function getJob(id: string, token: string) {
+  return apiRequest(`/jobs/${id}/`, { token });
+}
+
 export async function createJob(jobData: any, token: string) {
   return apiRequest('/jobs/', {
     method: 'POST',
@@ -150,6 +154,13 @@ export async function updateMyProfile(data: any, token: string) {
     method: 'PATCH',
     token,
     body: JSON.stringify(data),
+  });
+}
+
+export async function refreshToken(refresh: string) {
+  return apiRequest('/token/refresh/', {
+    method: 'POST',
+    body: JSON.stringify({ refresh }),
   });
 }
 

@@ -2,7 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost', 'https://artisans-ojzr.onrender.com'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
+      { protocol: 'https', hostname: 'artisans-ojzr.onrender.com' },
+      { protocol: 'http', hostname: 'localhost' },
+    ],
   },
   eslint: {
     ignoreDuringBuilds: true,

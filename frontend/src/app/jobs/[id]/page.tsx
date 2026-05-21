@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
-  getJobs, placeBid, getJobBids, acceptBid,
+  getJob, placeBid, getJobBids, acceptBid,
   openJobForBidding, startJob, completeJob, confirmJobCompletion,
   createReview, getArtisanReviews,
 } from '@/lib/api';
@@ -58,14 +58,7 @@ export default function JobDetailsPage() {
   const loadJob = async () => {
     try {
       setLoading(true);
-      const data = await getJobs();
-      const jobData = Array.isArray(data) ? data.find((j: Job) => j.id === Number(id)) : null;
-      
-      if (!jobData) {
-        setError('Job not found');
-        return;
-      }
-      
+      const jobData = await getJob(id, token!);
       setJob(jobData);
       
       // Load bids if user is the client
