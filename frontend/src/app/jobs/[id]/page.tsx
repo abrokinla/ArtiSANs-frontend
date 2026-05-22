@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   getJob, placeBid, getJobBids, acceptBid,
-  openJobForBidding, startJob, completeJob, confirmJobCompletion,
+  startJob, completeJob, confirmJobCompletion,
   createReview, getArtisanReviews,
 } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -102,18 +102,6 @@ export default function JobDetailsPage() {
       loadJob();
     } catch (err: any) {
       alert(err.message || 'Failed to accept bid');
-    }
-  };
-
-  const handleOpenBidding = async () => {
-    if (!token || !user || user.role !== 'client') return;
-    
-    try {
-      await openJobForBidding(id, token);
-      alert('Job opened for bidding!');
-      loadJob();
-    } catch (err: any) {
-      alert(err.message || 'Failed to open bidding');
     }
   };
 
@@ -236,15 +224,6 @@ export default function JobDetailsPage() {
 
         {/* Action Buttons */}
         <div className="flex gap-2 mb-4">
-          {isClient && job.status === 'pending' && (
-            <button
-              onClick={handleOpenBidding}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Open for Bidding
-            </button>
-          )}
-          
           {isAssignedArtisan && job.status === 'assigned' && (
             <button
               onClick={handleStartJob}

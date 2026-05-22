@@ -212,13 +212,6 @@ export async function getArtisanReviews(artisanId: string, token?: string) {
 }
 
 // Job Workflow
-export async function openJobForBidding(jobId: string, token: string) {
-  return apiRequest(`/jobs/${jobId}/open_bidding/`, {
-    method: 'POST',
-    token,
-  });
-}
-
 export async function startJob(jobId: string, token: string) {
   return apiRequest(`/jobs/${jobId}/start_job/`, {
     method: 'POST',
