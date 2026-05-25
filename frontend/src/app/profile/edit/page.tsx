@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getMyProfile, updateMyProfile, updateArtisanProfile, getArtisanProfile, uploadProfileImage } from '@/lib/api';
+import { getMyProfile, updateMyProfile, updateArtisanProfile, getArtisanProfile, uploadProfileImage, uploadPortfolioImage } from '@/lib/api';
 import Link from 'next/link';
 
 export default function EditProfilePage() {
@@ -20,6 +20,10 @@ export default function EditProfilePage() {
   const [uploadError, setUploadError] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Portfolio upload state
+  const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
+  const portfolioInputRef = useRef<HTMLInputElement>(null);
 
   // Profile form state
   const [formData, setFormData] = useState({
@@ -38,6 +42,8 @@ export default function EditProfilePage() {
     whatsapp: '',
     tel: '',
     is_available: true,
+    can_travel: false,
+    portfolio_images: [] as { url: string; public_id: string }[],
     available_days: 'Mon,Tue,Wed,Thu,Fri',
     available_hours_start: '08:00',
     available_hours_end: '18:00',
@@ -93,6 +99,8 @@ export default function EditProfilePage() {
             whatsapp: artisan.whatsapp || '',
             tel: artisan.tel || '',
             is_available: artisan.is_available || true,
+            can_travel: artisan.can_travel || false,
+            portfolio_images: artisan.portfolio_images || [],
             available_days: artisan.available_days || 'Mon,Tue,Wed,Thu,Fri',
             available_hours_start: artisan.available_hours_start || '08:00',
             available_hours_end: artisan.available_hours_end || '18:00',
@@ -226,6 +234,8 @@ export default function EditProfilePage() {
           whatsapp: formData.whatsapp,
           tel: formData.tel,
           is_available: formData.is_available,
+          can_travel: formData.can_travel,
+          portfolio_images: formData.portfolio_images,
           available_days: formData.available_days,
           available_hours_start: formData.available_hours_start,
           available_hours_end: formData.available_hours_end,
@@ -389,6 +399,72 @@ export default function EditProfilePage() {
             </div>
           </section>
 
+          {/* Portfolio Images Section (Artisan only) */}
+          {user?.role === 'artisan' && (
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Portfolio Images</h2>
+              <input
+                ref={portfolioInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                  if (!allowedTypes.includes(file.type)) return;
+                  if (file.size > 5 * 1024 * 1024) return;
+                  setUploadingPortfolio(true);
+                  try {
+                    const token = localStorage.getItem('token');
+                    if (!token) return;
+                    const result = await uploadPortfolioImage(file, token);
+                    setFormData(prev => ({
+                      ...prev,
+                      portfolio_images: [...prev.portfolio_images, result],
+                    }));
+                  } catch (err) {
+                    console.error('Portfolio upload failed:', err);
+                  } finally {
+                    setUploadingPortfolio(false);
+                  }
+                  if (portfolioInputRef.current) portfolioInputRef.current.value = '';
+                }}
+                className="hidden"
+              />
+              {formData.portfolio_images.length > 0 ? (
+                <div className="flex flex-wrap gap-3 mb-3">
+                  {formData.portfolio_images.map((img, idx) => (
+                    <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden group">
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            portfolio_images: prev.portfolio_images.filter((_, i) => i !== idx),
+                          }));
+                        }}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm mb-3">No portfolio images yet.</p>
+              )}
+              <button
+                type="button"
+                onClick={() => portfolioInputRef.current?.click()}
+                disabled={uploadingPortfolio}
+                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 border rounded-md hover:bg-gray-200 disabled:opacity-50"
+              >
+                {uploadingPortfolio ? 'Uploading...' : 'Add Image'}
+              </button>
+            </section>
+          )}
+
           {/* Basic Info Section */}
           <section>
             <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
@@ -534,6 +610,18 @@ export default function EditProfilePage() {
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm text-gray-700">Available for work</span>
+                  </label>
+                </div>
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="can_travel"
+                      checked={formData.can_travel}
+                      onChange={handleChange}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Willing to Travel</span>
                   </label>
                 </div>
               </div>

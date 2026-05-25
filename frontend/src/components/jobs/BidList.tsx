@@ -3,10 +3,13 @@
 interface Bid {
   id: number;
   artisan_username: string;
+  artisan_verified?: boolean;
+  artisan_profile_picture?: string;
   amount: number;
   message: string;
   estimated_days: number;
   is_accepted: boolean;
+  bid_weight?: number;
   created_at: string;
 }
 
@@ -27,14 +30,42 @@ export default function BidList({ bids, isClient, jobStatus, onAcceptBid }: BidL
       {bids.map((bid) => (
         <div key={bid.id} className="border rounded p-4">
           <div className="flex justify-between items-start">
-            <div>
-              <div className="font-semibold">{bid.artisan_username}</div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                {bid.artisan_profile_picture ? (
+                  <img
+                    src={bid.artisan_profile_picture}
+                    alt=""
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-6 h-6 bg-gray-300 rounded-full flex-shrink-0"></div>
+                )}
+                <span className="font-semibold">{bid.artisan_username}</span>
+                {bid.artisan_verified && (
+                  <span className="text-green-600 text-xs font-medium flex items-center gap-0.5">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Verified
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-gray-600">{bid.message}</div>
               <div className="text-sm text-gray-500 mt-1">
                 Estimated: {bid.estimated_days} day(s) • {new Date(bid.created_at).toLocaleDateString()}
               </div>
+              {bid.bid_weight && bid.bid_weight > 1 && (
+                <div className={`mt-1 inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                  bid.bid_weight >= 4 ? 'bg-orange-100 text-orange-800' :
+                  bid.bid_weight >= 3 ? 'bg-amber-100 text-amber-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }`}>
+                  🚀 Boosted x{bid.bid_weight}
+                </div>
+              )}
             </div>
-            <div className="text-right">
+            <div className="text-right flex-shrink-0 ml-4">
               <div className="text-xl font-bold text-green-600">₦{bid.amount.toLocaleString()}</div>
               {isClient && jobStatus === 'bidding' && onAcceptBid && (
                 <button

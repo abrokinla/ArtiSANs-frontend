@@ -58,25 +58,40 @@ export default function ArtisanProfilePage() {
           {/* Main Profile */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <div className="flex items-start mb-6">
-                <div className="w-24 h-24 bg-gray-300 rounded-full mr-6"></div>
-                <div className="flex-1">
-                  <h1 className="text-3xl font-bold mb-2">
-                    {artisan.user.first_name} {artisan.user.last_name}
-                  </h1>
-                  <p className="text-gray-600 mb-2">{artisan.location}</p>
-                  <div className="flex items-center mb-2">
-                    <span className="text-yellow-500 text-xl mr-1">★</span>
-                    <span className="font-medium text-lg">{artisan.average_rating.toFixed(1)}</span>
-                    <span className="text-gray-500 ml-2">({artisan.reviews_count} reviews)</span>
-                  </div>
-                  {artisan.is_verified && (
-                    <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-                      ✓ Verified Artisan
-                    </span>
+                <div className="flex items-start mb-6">
+                  {artisan.profile_picture_url || artisan.user?.profile?.profile_picture_url ? (
+                    <img
+                      src={artisan.profile_picture_url || artisan.user?.profile?.profile_picture_url}
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 bg-gray-300 rounded-full mr-6 flex-shrink-0"></div>
                   )}
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-bold mb-2">
+                      {artisan.user.first_name} {artisan.user.last_name}
+                    </h1>
+                    <p className="text-gray-600 mb-2">{artisan.location}</p>
+                    <div className="flex items-center mb-2">
+                      <span className="text-yellow-500 text-xl mr-1">★</span>
+                      <span className="font-medium text-lg">{artisan.average_rating.toFixed(1)}</span>
+                      <span className="text-gray-500 ml-2">({artisan.reviews_count} reviews)</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {artisan.is_verified && (
+                        <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                          ✓ Verified Artisan
+                        </span>
+                      )}
+                      {artisan.can_travel && (
+                        <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                          🌍 Willing to Travel
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
 
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-3">About</h2>
@@ -101,6 +116,24 @@ export default function ArtisanProfilePage() {
                 </div>
               )}
             </div>
+
+            {/* Portfolio Section */}
+            {artisan.portfolio_images?.length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 className="text-xl font-semibold mb-4">Previous Work</h2>
+                <div className="grid grid-cols-3 gap-3">
+                  {artisan.portfolio_images.map((img: any, idx: number) => (
+                    <div key={idx} className="aspect-square rounded-lg overflow-hidden">
+                      <img
+                        src={img.url || img}
+                        alt={`Portfolio ${idx + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Reviews Section */}
             <div className="bg-white rounded-lg shadow-md p-6">

@@ -149,6 +149,26 @@ export async function uploadProfileImage(file: File, token: string): Promise<{ u
   return response.json();
 }
 
+export async function uploadPortfolioImage(file: File, token: string): Promise<{ url: string; public_id: string }> {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const response = await fetch(`${API_URL}/artisans/upload_portfolio_image/`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export async function updateMyProfile(data: any, token: string) {
   return apiRequest('/profiles/me/', {
     method: 'PATCH',
@@ -164,6 +184,22 @@ export async function refreshToken(refresh: string) {
   });
 }
 
+export async function purchaseBids(quantity: number, token: string) {
+  return apiRequest('/artisans/purchase_bids/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ quantity }),
+  });
+}
+
+export async function verifyNIN(nin: string, token: string) {
+  return apiRequest('/artisans/verify_nin/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ nin }),
+  });
+}
+
 export default apiRequest;
 
 // Bids
@@ -171,6 +207,7 @@ export async function placeBid(jobId: string, bidData: {
   amount: number;
   message?: string;
   estimated_days?: number;
+  bid_weight?: number;
 }, token: string) {
   return apiRequest(`/jobs/${jobId}/bid/`, {
     method: 'POST',

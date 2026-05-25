@@ -5,13 +5,14 @@ import { useState } from 'react';
 interface PlaceBidFormProps {
   jobId: string;
   token: string;
-  onSubmit: (data: { amount: number; message: string; estimated_days: number }) => Promise<void>;
+  onSubmit: (data: { amount: number; message: string; estimated_days: number; bid_weight: number }) => Promise<void>;
 }
 
 export default function PlaceBidForm({ jobId, token, onSubmit }: PlaceBidFormProps) {
   const [bidAmount, setBidAmount] = useState('');
   const [bidMessage, setBidMessage] = useState('');
   const [bidDays, setBidDays] = useState('1');
+  const [bidWeight, setBidWeight] = useState(1);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,16 +25,20 @@ export default function PlaceBidForm({ jobId, token, onSubmit }: PlaceBidFormPro
         amount: Number(bidAmount),
         message: bidMessage,
         estimated_days: Number(bidDays),
+        bid_weight: bidWeight,
       });
       setBidAmount('');
       setBidMessage('');
       setBidDays('1');
+      setBidWeight(1);
     } catch (err) {
       console.error('Failed to place bid:', err);
     } finally {
       setSubmitting(false);
     }
   };
+
+  const weightLabels = ['', 'Use 1 bid', 'Use 2 bids', 'Use 3 bids', 'Use 4 bids', 'Use 5 bids'];
 
   return (
     <form onSubmit={handleSubmit} className="mb-6 p-4 bg-gray-50 rounded">
@@ -71,6 +76,31 @@ export default function PlaceBidForm({ jobId, token, onSubmit }: PlaceBidFormPro
           placeholder="Explain why you're the best fit..."
         />
       </div>
+
+      {/* Boost Your Bid Section */}
+      <div className="mb-4 p-3 bg-white border border-amber-200 rounded-lg">
+        <h4 className="font-semibold text-sm mb-2 text-amber-800">🚀 Boost Your Bid</h4>
+        <p className="text-xs text-gray-600 mb-3">
+          Increase your bid weight to stand out. Higher weight costs more bids but gets more visibility.
+        </p>
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min="1"
+            max="5"
+            value={bidWeight}
+            onChange={(e) => setBidWeight(Number(e.target.value))}
+            className="flex-1 accent-amber-600"
+          />
+          <span className="text-sm font-semibold text-amber-700 min-w-[80px] text-right">
+            {weightLabels[bidWeight]}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          This will cost <strong>{bidWeight}</strong> bid{bidWeight > 1 ? 's' : ''} from your remaining balance.
+        </p>
+      </div>
+
       <button
         type="submit"
         disabled={submitting}

@@ -115,17 +115,32 @@ export default function SearchPage() {
                 className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer"
               >
                 <div className="flex items-start mb-4">
-                  <div className="w-16 h-16 bg-gray-300 rounded-full mr-4"></div>
+                  {artisan.profile_picture_url ? (
+                    <img
+                      src={artisan.profile_picture_url}
+                      alt="Profile"
+                      className="w-16 h-16 rounded-full object-cover mr-4"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-300 rounded-full mr-4 flex-shrink-0"></div>
+                  )}
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">
                       {artisan.first_name} {artisan.last_name}
                     </h3>
                     <p className="text-gray-600 text-sm">{artisan.location}</p>
-                    {artisan.is_verified && (
-                      <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mt-1">
-                        Verified ✓
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {artisan.is_verified && (
+                        <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                          Verified ✓
+                        </span>
+                      )}
+                      {artisan.can_travel && (
+                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                          🌍 Travel
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
@@ -133,6 +148,9 @@ export default function SearchPage() {
                   <span className="text-yellow-500 mr-1">★</span>
                   <span className="font-medium">{artisan.average_rating.toFixed(1)}</span>
                   <span className="text-gray-500 ml-1">({artisan.review_count} reviews)</span>
+                  {artisan.portfolio_images?.length > 0 && (
+                    <span className="text-gray-500 text-xs ml-2">📷 {artisan.portfolio_images.length} photos</span>
+                  )}
                 </div>
                 
                 <p className="text-gray-600 text-sm mb-3">{artisan.bio}</p>

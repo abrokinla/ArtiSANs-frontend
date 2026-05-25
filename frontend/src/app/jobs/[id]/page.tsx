@@ -79,7 +79,7 @@ export default function JobDetailsPage() {
     }
   };
 
-  const handlePlaceBid = async (data: { amount: number; message: string; estimated_days: number }) => {
+  const handlePlaceBid = async (data: { amount: number; message: string; estimated_days: number; bid_weight: number }) => {
     if (!token || !user || user.role !== 'artisan') return;
     
     try {

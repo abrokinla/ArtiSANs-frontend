@@ -4,10 +4,22 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getMyProfile } from '@/lib/api';
 
 export default function Navbar() {
-  const { isLoggedIn, user, logout } = useAuth();
+  const { isLoggedIn, user, logout, token } = useAuth();
   const router = useRouter();
+  const [bidsRemaining, setBidsRemaining] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isLoggedIn && user?.role === 'artisan' && token) {
+      let cancelled = false;
+      getMyProfile(token).then((profile) => {
+        if (!cancelled) setBidsRemaining(profile.bids_remaining);
+      }).catch(() => {});
+      return () => { cancelled = true; };
+    }
+  }, [isLoggedIn, user?.role, token]);
 
   const handleLogout = () => {
     logout();
@@ -50,6 +62,16 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {isLoggedIn ? (
               <>
+                {user?.role === 'artisan' && bidsRemaining !== null && (
+                  <Link
+                    href="/dashboard"
+                    className={`text-sm font-medium transition-colors ${
+                      bidsRemaining < 3 ? 'text-red-500' : bidsRemaining < 5 ? 'text-orange-500' : 'text-text-secondary'
+                    }`}
+                  >
+                    Bids: {bidsRemaining}
+                  </Link>
+                )}
                 <Link href="/dashboard" className="text-text-secondary hover:text-text-primary text-sm font-medium hidden sm:block">
                   Dashboard
                 </Link>
