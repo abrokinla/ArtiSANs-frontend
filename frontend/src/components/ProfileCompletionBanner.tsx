@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { getArtisanProfile } from '@/lib/api';
+import { getMyArtisanProfile } from '@/lib/api';
 
 const STORAGE_KEY = 'profile-banner-dismissed';
 
@@ -24,7 +24,7 @@ export default function ProfileCompletionBanner() {
     if (!token || user?.role !== 'artisan') return;
 
     let cancelled = false;
-    getArtisanProfile(user!.id.toString(), token)
+    getMyArtisanProfile(token)
       .then((data) => {
         if (!cancelled && (!data.categories || data.categories.length === 0)) {
           setVisible(true);

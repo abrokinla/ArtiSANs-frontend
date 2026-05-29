@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getMyProfile, getMyJobs, getArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob } from '@/lib/api';
+import { getMyProfile, getMyJobs, getMyArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 const BID_PRICING = [
@@ -52,7 +52,7 @@ export default function DashboardPage() {
         setJobs(jobsData);
 
         if (user?.role === 'artisan') {
-          const artisanData = await getArtisanProfile(user.id.toString(), token!);
+          const artisanData = await getMyArtisanProfile(token!);
           setArtisanProfile(artisanData);
         }
       } catch (error) {
@@ -73,7 +73,7 @@ export default function DashboardPage() {
     setUploadingPortfolio(true);
     try {
       const result = await uploadPortfolioImage(file, token!);
-      const updated = await getArtisanProfile(user!.id.toString(), token!);
+      const updated = await getMyArtisanProfile(token!);
       setArtisanProfile(updated);
     } catch (err) {
       console.error('Portfolio upload failed:', err);
@@ -93,7 +93,7 @@ export default function DashboardPage() {
     setVerifying(true);
     try {
       await verifyNIN(nin, token!);
-      const updated = await getArtisanProfile(user!.id.toString(), token!);
+      const updated = await getMyArtisanProfile(token!);
       setArtisanProfile(updated);
       setShowNINModal(false);
       setNin('');

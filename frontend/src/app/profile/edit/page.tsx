@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getMyProfile, updateMyProfile, updateArtisanProfile, getArtisanProfile, uploadProfileImage, uploadPortfolioImage, getCategories } from '@/lib/api';
+import { getMyProfile, updateMyProfile, updateArtisanProfile, getMyArtisanProfile, uploadProfileImage, uploadPortfolioImage, getCategories } from '@/lib/api';
 import LocationSelect from '@/components/LocationSelect';
 import type { LocationValue } from '@/components/LocationSelect';
 import CategorySelect from '@/components/CategorySelect';
@@ -99,7 +99,7 @@ export default function EditProfilePage() {
 
         // If artisan, fetch artisan profile
         if (user.role === 'artisan') {
-          const artisan = await getArtisanProfile(user.id.toString(), token);
+          const artisan = await getMyArtisanProfile(token);
           setFormData(prev => ({
             ...prev,
             categories: artisan.categories?.map((cat: any) => cat.id) || [],

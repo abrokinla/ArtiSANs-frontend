@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getJobs, getArtisanProfile } from '@/lib/api';
+import { getJobs, getMyArtisanProfile } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
@@ -20,7 +20,7 @@ export default function JobsPage() {
         setJobs(jobList);
 
         if (user?.role === 'artisan' && token) {
-          const artisan = await getArtisanProfile(user.id.toString(), token);
+          const artisan = await getMyArtisanProfile(token);
           if (artisan.categories) {
             setArtisanCategoryIds(artisan.categories.map((c: any) => c.id));
           }
