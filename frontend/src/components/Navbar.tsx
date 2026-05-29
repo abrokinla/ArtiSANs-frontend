@@ -34,8 +34,8 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-semibold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
-            ArtiSANs<span className="text-rausch">.</span>NG
+          <Link href="/" className="flex items-center">
+            <img src="/logo.png" alt="ArtiSANs.NG" className="h-8 sm:h-10 w-auto" />
           </Link>
 
           {/* Center Navigation - Desktop */}

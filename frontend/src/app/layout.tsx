@@ -17,6 +17,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="icon" href="/logo.png" type="image/png" sizes="1408x768" />
         {/* DM Sans - Airbnb Cereal VF substitute */}
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet" />
       </head>
