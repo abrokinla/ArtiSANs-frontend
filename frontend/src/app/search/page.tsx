@@ -67,7 +67,7 @@ export default function SearchPage() {
             <select
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-              className="px-4 py-2 border rounded-lg"
+              className="px-4 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -86,7 +86,7 @@ export default function SearchPage() {
             <select
               value={filters.min_rating}
               onChange={(e) => setFilters({ ...filters, min_rating: e.target.value })}
-              className="px-4 py-2 border rounded-lg"
+              className="px-4 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
             >
               <option value="">Any Rating</option>
               <option value="3">3+ Stars</option>

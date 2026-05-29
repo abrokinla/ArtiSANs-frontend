@@ -75,7 +75,7 @@ export default function LocationSelect({
   return (
     <div className="space-y-3">
       {label && (
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {label}
         </label>
       )}
@@ -85,7 +85,7 @@ export default function LocationSelect({
             value={value.state_id || ''}
             onChange={(e) => handleStateChange(e.target.value)}
             required={required}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
           >
             <option value="">Select State</option>
             {states.map((state) => (
@@ -101,7 +101,7 @@ export default function LocationSelect({
             onChange={(e) => handleLgaChange(e.target.value)}
             disabled={!value.state_id || loading}
             required={required}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-400"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
           >
             <option value="">
               {loading ? 'Loading...' : 'Select LGA'}
@@ -121,7 +121,7 @@ export default function LocationSelect({
             value={addressValue}
             onChange={(e) => onAddressChange(e.target.value)}
             placeholder="Street / Area (optional)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
           />
         </div>
       )}
