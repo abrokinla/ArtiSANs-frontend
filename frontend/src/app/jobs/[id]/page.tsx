@@ -8,6 +8,7 @@ import {
   getJob, placeBid, getJobBids, acceptBid,
   startJob, completeJob, confirmJobCompletion,
   createReview, getArtisanReviews,
+  getMyProfile,
 } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import PlaceBidForm from '@/components/jobs/PlaceBidForm';
@@ -48,20 +49,34 @@ export default function JobDetailsPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [bids, setBids] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [bidsRemaining, setBidsRemaining] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (id && token) {
+    if (id) {
       loadJob();
     }
-  }, [id, token]);
+  }, [id, token, user?.id, user?.role]);
 
   const loadJob = async () => {
     try {
       setLoading(true);
-      const jobData = await getJob(id, token!);
+      let jobData;
+      try {
+        jobData = await getJob(id, token || undefined);
+      } catch {
+        jobData = await getJob(id);
+      }
       setJob(jobData);
+
+      // Load artisan's available bids for bid form
+      if (user?.role === 'artisan' && token) {
+        try {
+          const profile = await getMyProfile(token);
+          setBidsRemaining(profile.bids_remaining || 0);
+        } catch {}
+      }
       
       // Load bids if user is the client or assigned artisan
       if (token && (
@@ -268,6 +283,7 @@ export default function JobDetailsPage() {
             <PlaceBidForm 
               jobId={id} 
               token={token!} 
+              bidsRemaining={bidsRemaining}
               onSubmit={handlePlaceBid} 
             />
           )}

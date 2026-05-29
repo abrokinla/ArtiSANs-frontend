@@ -5,22 +5,34 @@ import { useState } from 'react';
 interface PlaceBidFormProps {
   jobId: string;
   token: string;
+  bidsRemaining?: number;
   onSubmit: (data: { amount: number; message: string; estimated_days: number; bid_weight: number }) => Promise<void>;
 }
 
-export default function PlaceBidForm({ jobId, token, onSubmit }: PlaceBidFormProps) {
+const MAX_WEIGHT = 5;
+
+export default function PlaceBidForm({ jobId, token, bidsRemaining = 0, onSubmit }: PlaceBidFormProps) {
   const [bidAmount, setBidAmount] = useState('');
   const [bidMessage, setBidMessage] = useState('');
   const [bidDays, setBidDays] = useState('1');
   const [bidWeight, setBidWeight] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const maxWeight = Math.min(MAX_WEIGHT, bidsRemaining);
+  const hasEnoughBids = bidsRemaining >= bidWeight;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bidAmount) return;
+    if (!hasEnoughBids) {
+      setError('Not enough bids remaining. Please reduce bid weight or purchase more bids.');
+      return;
+    }
 
     try {
       setSubmitting(true);
+      setError('');
       await onSubmit({
         amount: Number(bidAmount),
         message: bidMessage,
@@ -87,7 +99,7 @@ export default function PlaceBidForm({ jobId, token, onSubmit }: PlaceBidFormPro
           <input
             type="range"
             min="1"
-            max="5"
+            max={maxWeight}
             value={bidWeight}
             onChange={(e) => setBidWeight(Number(e.target.value))}
             className="flex-1 accent-amber-600 dark:accent-amber-400"
@@ -97,13 +109,17 @@ export default function PlaceBidForm({ jobId, token, onSubmit }: PlaceBidFormPro
           </span>
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          This will cost <strong>{bidWeight}</strong> bid{bidWeight > 1 ? 's' : ''} from your remaining balance.
+          Bids remaining: <strong>{bidsRemaining}</strong> &bull; This will cost <strong>{bidWeight}</strong> bid{bidWeight > 1 ? 's' : ''}
         </p>
       </div>
 
+      {error && (
+        <p className="text-sm text-red-600 dark:text-red-400 mb-3">{error}</p>
+      )}
+
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || (bidsRemaining < bidWeight)}
         className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50"
       >
         {submitting ? 'Submitting...' : 'Place Bid'}

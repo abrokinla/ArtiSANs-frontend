@@ -98,8 +98,8 @@ export async function getJobs(params: { status?: string; state?: number; lga?: n
   return apiRequest(`/jobs/?${query.toString()}`);
 }
 
-export async function getJob(id: string, token: string) {
-  return apiRequest(`/jobs/${id}/`, { token });
+export async function getJob(id: string, token?: string) {
+  return apiRequest(`/jobs/${id}/`, token ? { token } : {});
 }
 
 export async function createJob(jobData: any, token: string) {
