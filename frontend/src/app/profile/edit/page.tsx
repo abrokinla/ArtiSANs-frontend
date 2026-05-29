@@ -235,6 +235,8 @@ export default function EditProfilePage() {
 
       // Update profile (common fields)
       const profileData: any = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         phone_number: formData.phone_number,
         location: formData.location,
         bio: formData.bio,

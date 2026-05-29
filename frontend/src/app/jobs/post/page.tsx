@@ -90,7 +90,6 @@ export default function PostJobPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // Max 5 images total
     if (images.length + files.length > 5) {
       setImageError('You can upload a maximum of 5 images');
       return;
@@ -105,30 +104,36 @@ export default function PostJobPage() {
       return;
     }
 
-    try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-          throw new Error(`Invalid file type: ${file.type}. Allowed: JPEG, PNG, WebP`);
-        }
-        // Validate file size (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`File "${file.name}" is too large. Maximum size is 5MB`);
-        }
-        return uploadJobImage(file, token);
-      });
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    let uploaded: JobImage[] = [];
+    let lastError = '';
 
-      const uploadedImages = await Promise.all(uploadPromises);
-      setImages((prev) => [...prev, ...uploadedImages]);
-    } catch (err: any) {
-      setImageError(err.message || 'Failed to upload image(s)');
-    } finally {
-      setUploadingImages(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    for (const file of Array.from(files)) {
+      if (!allowedTypes.includes(file.type)) {
+        lastError = `${file.name}: invalid type. Allowed: JPEG, PNG, WebP`;
+        continue;
       }
+      if (file.size > 5 * 1024 * 1024) {
+        lastError = `${file.name}: exceeds 5MB limit`;
+        continue;
+      }
+      try {
+        const result = await uploadJobImage(file, token);
+        uploaded.push(result);
+      } catch (err: any) {
+        lastError = `${file.name}: ${err.message || 'Upload failed'}`;
+      }
+    }
+
+    if (uploaded.length > 0) {
+      setImages((prev) => [...prev, ...uploaded]);
+    }
+    if (lastError) {
+      setImageError(lastError);
+    }
+    setUploadingImages(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -153,7 +158,7 @@ export default function PostJobPage() {
           ...formData,
           category: formData.category_id,
           budget: parseFloat(formData.budget) || null,
-          images: images,
+          images: images.map(img => img.url),
           state: locationValue.state_id,
           lga: locationValue.lga_id,
         },
