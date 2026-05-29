@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import ProfileCompletionBanner from '@/components/ProfileCompletionBanner'
 import { AuthProvider } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 
@@ -26,6 +27,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <Navbar />
+            <ProfileCompletionBanner />
             <main>{children}</main>
             <footer className="bg-white dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 py-12 mt-16 transition-colors">
               <div className="container mx-auto px-4 text-center">

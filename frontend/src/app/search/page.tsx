@@ -5,6 +5,7 @@ import { searchArtisans, getCategories } from '@/lib/api';
 import LocationSelect from '@/components/LocationSelect';
 import type { LocationValue } from '@/components/LocationSelect';
 import { useRouter } from 'next/navigation';
+import { groupCategories } from '@/components/CategorySelect';
 
 export default function SearchPage() {
   const [artisans, setArtisans] = useState<any[]>([]);
@@ -70,8 +71,12 @@ export default function SearchPage() {
               className="px-4 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
             >
               <option value="">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              {groupCategories(categories).map((group) => (
+                <optgroup key={group.key} label={group.label}>
+                  {group.categories.map((cat: any) => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             

@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getMyProfile, updateMyProfile, updateArtisanProfile, getArtisanProfile, uploadProfileImage, uploadPortfolioImage } from '@/lib/api';
+import { getMyProfile, updateMyProfile, updateArtisanProfile, getArtisanProfile, uploadProfileImage, uploadPortfolioImage, getCategories } from '@/lib/api';
 import LocationSelect from '@/components/LocationSelect';
 import type { LocationValue } from '@/components/LocationSelect';
+import CategorySelect from '@/components/CategorySelect';
 import Link from 'next/link';
 
 export default function EditProfilePage() {
@@ -38,7 +39,7 @@ export default function EditProfilePage() {
     bio: '',
     profile_picture_url: '',
     // Artisan-specific fields (if applicable)
-    categories: [] as string[],
+    categories: [] as number[],
     experience: '',
     whatsapp: '',
     tel: '',
@@ -49,6 +50,8 @@ export default function EditProfilePage() {
     available_hours_start: '08:00',
     available_hours_end: '18:00',
   });
+
+  const [allCategories, setAllCategories] = useState<any[]>([]);
 
   const [locationValue, setLocationValue] = useState<LocationValue>({
     state_id: null,
@@ -111,6 +114,9 @@ export default function EditProfilePage() {
             available_hours_end: artisan.available_hours_end || '18:00',
           }));
         }
+
+        const cats = await getCategories();
+        setAllCategories(Array.isArray(cats) ? cats : cats.results || []);
       } catch (err) {
         setError('Failed to load profile data');
         console.error(err);
@@ -239,6 +245,7 @@ export default function EditProfilePage() {
       // If artisan, update artisan profile
       if (user?.role === 'artisan') {
         const artisanData: any = {
+          category_ids: formData.categories,
           experience: formData.experience,
           whatsapp: formData.whatsapp,
           tel: formData.tel,
@@ -572,6 +579,18 @@ export default function EditProfilePage() {
             <section>
               <h2 className="text-xl font-semibold mb-4">Artisan Details</h2>
               <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-3">Skills & Categories</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    Select up to 3 categories that match your expertise. You can only bid on jobs in these categories.
+                  </p>
+                  <CategorySelect
+                    categories={allCategories}
+                    value={formData.categories}
+                    onChange={(ids) => setFormData(prev => ({ ...prev, categories: ids }))}
+                    max={3}
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Experience

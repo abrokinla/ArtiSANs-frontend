@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { createJob, uploadJobImage, getCategories } from '@/lib/api';
 import LocationSelect from '@/components/LocationSelect';
 import type { LocationValue } from '@/components/LocationSelect';
+import { groupCategories } from '@/components/CategorySelect';
 
 interface Category {
   id: number;
@@ -244,8 +245,12 @@ export default function PostJobPage() {
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
               >
                 <option value="">Select a category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                {groupCategories(categories).map((group) => (
+                  <optgroup key={group.key} label={group.label}>
+                    {group.categories.map((cat: any) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
