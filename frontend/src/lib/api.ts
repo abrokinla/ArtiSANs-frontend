@@ -102,6 +102,10 @@ export async function getJob(id: string, token?: string) {
   return apiRequest(`/jobs/${id}/`, token ? { token } : {});
 }
 
+export async function getJobPublic(id: string) {
+  return apiRequest(`/jobs/${id}/public/`);
+}
+
 export async function createJob(jobData: any, token: string) {
   return apiRequest('/jobs/', {
     method: 'POST',

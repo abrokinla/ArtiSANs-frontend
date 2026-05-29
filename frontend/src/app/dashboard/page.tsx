@@ -254,7 +254,7 @@ export default function DashboardPage() {
                   <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <Link href={`/jobs/${job.id}`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        <Link href={`/jobs/${job.id}/manage`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                           {job.title}
                         </Link>
                         <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                           <span className="font-bold text-green-600 dark:text-green-400">₦{job.budget.toLocaleString()}</span>
                         )}
                         <Link
-                          href={`/jobs/${job.id}`}
+                          href={`/jobs/${job.id}/manage`}
                           className="px-3 py-1.5 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600"
                         >
                           View {job.bids_count || 0} bid{(job.bids_count || 0) !== 1 ? 's' : ''} →
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                   <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <Link href={`/jobs/${job.id}`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        <Link href={`/jobs/${job.id}/manage`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                           {job.title}
                         </Link>
                         <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
@@ -356,7 +356,7 @@ export default function DashboardPage() {
                       )}
                       {isClient && (
                         <Link
-                          href={`/jobs/${job.id}`}
+                          href={`/jobs/${job.id}/manage`}
                           className="px-4 py-1.5 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 inline-block"
                         >
                           View Progress
@@ -384,7 +384,7 @@ export default function DashboardPage() {
                 <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <Link href={`/jobs/${job.id}`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                      <Link href={`/jobs/${job.id}/manage`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                         {job.title}
                       </Link>
                       {job.final_amount && (
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <Link
-                      href={`/jobs/${job.id}`}
+                      href={`/jobs/${job.id}/manage`}
                       className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700"
                     >
                       {user.role === 'client' ? 'Leave Review →' : 'View Details →'}
