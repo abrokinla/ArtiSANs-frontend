@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { getMyProfile, getMyJobs, getArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN } from '@/lib/api';
+import Link from 'next/link';
+import { getMyProfile, getMyJobs, getArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 const BID_PRICING = [
@@ -17,8 +18,9 @@ export default function DashboardPage() {
   const [artisanProfile, setArtisanProfile] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const router = useRouter();
-  const { user, token } = useAuth();
+  const { user, token, authInitialized } = useAuth();
 
   // Portfolio
   const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
@@ -35,6 +37,7 @@ export default function DashboardPage() {
   const [purchasing, setPurchasing] = useState(false);
 
   useEffect(() => {
+    if (!authInitialized) return;
     if (!token) {
       router.push('/auth');
       return;
@@ -60,7 +63,7 @@ export default function DashboardPage() {
     }
 
     loadDashboard();
-  }, [router, token, user?.id, user?.role]);
+  }, [router, token, user?.id, user?.role, authInitialized]);
 
   const handlePortfolioUpload = async (file: File) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -114,9 +117,39 @@ export default function DashboardPage() {
     }
   };
 
+  const handleStartJob = async (jobId: string) => {
+    if (!token) return;
+    setActionLoading(`start_${jobId}`);
+    try {
+      await startJob(jobId, token);
+      const jobsData = await getMyJobs(token);
+      setJobs(jobsData);
+    } catch (err) {
+      console.error('Failed to start job:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCompleteJob = async (jobId: string) => {
+    if (!token) return;
+    setActionLoading(`complete_${jobId}`);
+    try {
+      await completeJob(jobId, token);
+      const jobsData = await getMyJobs(token);
+      setJobs(jobsData);
+    } catch (err) {
+      console.error('Failed to complete job:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  if (!authInitialized) return <div className="text-center py-12">Loading...</div>;
   if (loading) return <div className="text-center py-12">Loading...</div>;
   if (!user) return null;
 
+  const biddingJobs = jobs.filter((j: any) => j.status === 'bidding');
   const activeJobs = jobs.filter((j: any) => ['assigned', 'in_progress'].includes(j.status));
   const completedJobs = jobs.filter((j: any) => j.status === 'completed');
 
@@ -125,13 +158,19 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
             <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Jobs</h3>
             <p className="text-3xl font-bold">{jobs.length}</p>
           </div>
+          {user.role === 'client' && (
+            <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
+              <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Open for Bidding</h3>
+              <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{biddingJobs.length}</p>
+            </div>
+          )}
           <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
-            <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Active Jobs</h3>
+            <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">In Progress</h3>
             <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{activeJobs.length}</p>
           </div>
           <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
@@ -175,9 +214,57 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Open for Bidding (Client only) */}
+        {user.role === 'client' && (
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">
+              <span className="inline-block w-3 h-3 rounded-full bg-yellow-400 mr-2" />
+              Open for Bidding ({biddingJobs.length})
+            </h2>
+            {biddingJobs.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400">
+                No open jobs.{' '}
+                <a href="/jobs/post" className="text-blue-600 dark:text-blue-400">Post a job</a> to get started.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {biddingJobs.map((job: any) => (
+                  <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <Link href={`/jobs/${job.id}`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                          {job.title}
+                        </Link>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                          {job.category_name && <span>{job.category_name} • </span>}
+                          {job.lga_name ? `${job.lga_name}, ${job.state_name}` : job.location} • {new Date(job.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right flex items-center gap-3">
+                        {job.budget && (
+                          <span className="font-bold text-green-600 dark:text-green-400">₦{job.budget.toLocaleString()}</span>
+                        )}
+                        <Link
+                          href={`/jobs/${job.id}`}
+                          className="px-3 py-1.5 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600"
+                        >
+                          View {job.bids_count || 0} bid{(job.bids_count || 0) !== 1 ? 's' : ''} →
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Active Jobs */}
         <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Active Jobs</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            <span className="inline-block w-3 h-3 rounded-full bg-blue-400 mr-2" />
+            In Progress ({activeJobs.length})
+          </h2>
           {activeJobs.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400">
               No active jobs.{' '}
@@ -190,21 +277,114 @@ export default function DashboardPage() {
             </p>
           ) : (
             <div className="space-y-4">
-              {activeJobs.map((job: any) => (
-                <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600 dark:bg-[#1a1a2e] dark:text-gray-200">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold">{job.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        {job.lga_name ? `${job.lga_name}, ${job.state_name}` : job.location}
-                      </p>
-                      <p className="text-gray-700 dark:text-gray-300 mt-1">{job.description}</p>
+              {activeJobs.map((job: any) => {
+                const isAssignedArtisan = user.role === 'artisan' && job.artisan_username === user.username;
+                const isClient = user.role === 'client' && job.client_username === user.username;
+                const isLoading = actionLoading === `start_${job.id}` || actionLoading === `complete_${job.id}`;
+                return (
+                  <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <Link href={`/jobs/${job.id}`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                          {job.title}
+                        </Link>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                          {job.lga_name ? `${job.lga_name}, ${job.state_name}` : job.location} • {new Date(job.created_at).toLocaleDateString()}
+                        </p>
+                        {job.artisan_username && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                            <span className="font-medium">Artisan:</span> {job.artisan_username}
+                          </p>
+                        )}
+                        {job.client_username && isAssignedArtisan && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                            <span className="font-medium">Client:</span> {job.client_username}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right flex items-center gap-3">
+                        {job.budget && (
+                          <span className="font-bold text-green-600 dark:text-green-400">₦{job.budget.toLocaleString()}</span>
+                        )}
+                        <span className={`px-3 py-1 rounded-full text-xs ${
+                          job.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                        }`}>
+                          {job.status === 'in_progress' ? 'IN PROGRESS' : 'ASSIGNED'}
+                        </span>
+                      </div>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs ${
-                      job.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                    }`}>
-                      {job.status}
-                    </span>
+                    <div className="mt-3 flex gap-2">
+                      {isAssignedArtisan && job.status === 'assigned' && (
+                        <button
+                          onClick={() => handleStartJob(job.id)}
+                          disabled={isLoading}
+                          className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {isLoading ? 'Starting...' : 'Start Job'}
+                        </button>
+                      )}
+                      {isAssignedArtisan && job.status === 'in_progress' && (
+                        <button
+                          onClick={() => handleCompleteJob(job.id)}
+                          disabled={isLoading}
+                          className="px-4 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {isLoading ? 'Completing...' : 'Mark Complete'}
+                        </button>
+                      )}
+                      {isClient && (
+                        <Link
+                          href={`/jobs/${job.id}`}
+                          className="px-4 py-1.5 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 inline-block"
+                        >
+                          View Progress
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Completed Jobs */}
+        <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">
+            <span className="inline-block w-3 h-3 rounded-full bg-green-400 mr-2" />
+            Completed ({completedJobs.length})
+          </h2>
+          {completedJobs.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400">No completed jobs yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {completedJobs.map((job: any) => (
+                <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Link href={`/jobs/${job.id}`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        {job.title}
+                      </Link>
+                      {job.final_amount && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Final: <span className="font-bold text-green-600 dark:text-green-400">₦{job.final_amount.toLocaleString()}</span>
+                        </p>
+                      )}
+                      {job.budget && !job.final_amount && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Budget: <span className="font-bold">₦{job.budget.toLocaleString()}</span>
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                        Completed: {new Date(job.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/jobs/${job.id}`}
+                      className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                    >
+                      {user.role === 'client' ? 'Leave Review →' : 'View Details →'}
+                    </Link>
                   </div>
                 </div>
               ))}

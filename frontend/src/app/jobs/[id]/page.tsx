@@ -63,8 +63,11 @@ export default function JobDetailsPage() {
       const jobData = await getJob(id, token!);
       setJob(jobData);
       
-      // Load bids if user is the client
-      if (token && user?.role === 'client' && jobData.client_username === user.username) {
+      // Load bids if user is the client or assigned artisan
+      if (token && (
+        (user?.role === 'client' && jobData.client_username === user.username) ||
+        (user?.role === 'artisan' && jobData.artisan_username === user.username)
+      )) {
         const bidsData = await getJobBids(id, token);
         setBids(bidsData);
       }

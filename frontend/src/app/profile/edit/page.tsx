@@ -9,9 +9,8 @@ import type { LocationValue } from '@/components/LocationSelect';
 import Link from 'next/link';
 
 export default function EditProfilePage() {
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, user, authInitialized } = useAuth();
   const router = useRouter();
-  const [authChecked, setAuthChecked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -60,19 +59,10 @@ export default function EditProfilePage() {
 
   // Redirect if not logged in (wait for auth to initialize)
   useEffect(() => {
-    if (authChecked && !isLoggedIn) {
+    if (authInitialized && !isLoggedIn) {
       router.push('/auth');
     }
-  }, [authChecked, isLoggedIn, router]);
-
-  // Initialize auth checked state
-  useEffect(() => {
-    // Small delay to allow AuthContext to initialize
-    const timer = setTimeout(() => {
-      setAuthChecked(true);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+  }, [authInitialized, isLoggedIn, router]);
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -273,6 +263,14 @@ export default function EditProfilePage() {
       setSaving(false);
     }
   };
+
+  if (!authInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) {
     return (

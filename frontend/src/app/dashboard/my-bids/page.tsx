@@ -20,18 +20,19 @@ interface Bid {
 
 export default function MyBidsPage() {
   const router = useRouter();
-  const { user, token } = useAuth();
+  const { user, token, authInitialized } = useAuth();
   const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!authInitialized) return;
     if (!user || user.role !== 'artisan') {
       router.push('/auth');
       return;
     }
     loadBids();
-  }, [user, token]);
+  }, [user, token, authInitialized]);
 
   const loadBids = async () => {
     try {
@@ -45,6 +46,7 @@ export default function MyBidsPage() {
     }
   };
 
+  if (!authInitialized) return <div className="p-8 text-center">Loading...</div>;
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (error) return <div className="p-8 text-center text-red-600 dark:text-red-400">{error}</div>;
 

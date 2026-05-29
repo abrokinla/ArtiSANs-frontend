@@ -17,6 +17,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, refresh: string, user: User) => void;
   logout: () => void;
+  authInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
     // Check auth state on mount and listen for storage changes
@@ -44,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(null);
         setUser(null);
       }
+      setAuthInitialized(true);
     };
 
     checkAuth();
@@ -66,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoggedIn(true);
     setToken(token);
     setUser(user);
+    setAuthInitialized(true);
     // Dispatch custom event to notify other components
     window.dispatchEvent(new Event('authChange'));
   };
@@ -77,12 +81,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoggedIn(false);
     setToken(null);
     setUser(null);
+    setAuthInitialized(true);
     // Dispatch custom event
     window.dispatchEvent(new Event('authChange'));
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, token, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, user, token, login, logout, authInitialized }}>
       {children}
     </AuthContext.Provider>
   );
