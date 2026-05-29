@@ -566,11 +566,6 @@ body {
               box-shadow 0.3s ease;
 }
 
-/* Dark modal backdrop */
-.dark .fixed.inset-0.bg-black\\/50 {
-  background-color: rgba(0, 0, 0, 0.7);
-}
-
 /* ============================================
    Responsive Breakpoints (matching Airbnb)
    ============================================ */
