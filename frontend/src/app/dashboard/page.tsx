@@ -121,54 +121,54 @@ export default function DashboardPage() {
   const completedJobs = jobs.filter((j: any) => j.status === 'completed');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23]">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-600 text-sm mb-1">Total Jobs</h3>
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
+            <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Jobs</h3>
             <p className="text-3xl font-bold">{jobs.length}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-600 text-sm mb-1">Active Jobs</h3>
-            <p className="text-3xl font-bold text-blue-600">{activeJobs.length}</p>
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
+            <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Active Jobs</h3>
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{activeJobs.length}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-600 text-sm mb-1">Completed</h3>
-            <p className="text-3xl font-bold text-green-600">{completedJobs.length}</p>
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
+            <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Completed</h3>
+            <p className="text-3xl font-bold text-green-600 dark:text-green-400">{completedJobs.length}</p>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
           <div className="flex gap-4 flex-wrap">
             {user.role === 'client' && (
               <button
                 onClick={() => router.push('/jobs/post')}
-                className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-800"
               >
                 Post a Job
               </button>
             )}
             <button
               onClick={() => router.push('/search')}
-              className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+              className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 dark:hover:bg-green-800"
             >
               Find Artisans
             </button>
             {user.role === 'artisan' && (
               <button
                 onClick={() => router.push('/dashboard/my-bids')}
-                className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
+                className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 dark:hover:bg-purple-800"
               >
                 My Bids
               </button>
             )}
             <button
               onClick={() => router.push('/profile/edit')}
-              className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700"
+              className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 dark:hover:bg-gray-800"
             >
               Edit Profile
             </button>
@@ -176,30 +176,32 @@ export default function DashboardPage() {
         </div>
 
         {/* Active Jobs */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Active Jobs</h2>
           {activeJobs.length === 0 ? (
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-400">
               No active jobs.{' '}
               {user.role === 'client' ? (
-                <a href="/jobs/post" className="text-blue-600">Post a job</a>
+                <a href="/jobs/post" className="text-blue-600 dark:text-blue-400">Post a job</a>
               ) : (
-                <a href="/jobs" className="text-blue-600">Find jobs</a>
+                <a href="/jobs" className="text-blue-600 dark:text-blue-400">Find jobs</a>
               )}{' '}
               to get started.
             </p>
           ) : (
             <div className="space-y-4">
               {activeJobs.map((job: any) => (
-                <div key={job.id} className="border rounded-lg p-4">
+                <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600 dark:bg-[#1a1a2e] dark:text-gray-200">
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-semibold">{job.title}</h3>
-                      <p className="text-gray-600 text-sm">{job.location}</p>
-                      <p className="text-gray-700 mt-1">{job.description}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        {job.lga_name ? `${job.lga_name}, ${job.state_name}` : job.location}
+                      </p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">{job.description}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs ${
-                      job.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
+                      job.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
                     }`}>
                       {job.status}
                     </span>
@@ -212,7 +214,7 @@ export default function DashboardPage() {
 
         {/* Profile Summary */}
         {profile && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Profile Summary</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {profile.profile_picture_url && (
@@ -224,33 +226,35 @@ export default function DashboardPage() {
                   />
                   <div>
                     <p className="font-medium">{user?.username}</p>
-                    <p className="text-sm text-gray-500 capitalize">{user?.role}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
                   </div>
                 </div>
               )}
               <div>
-                <p className="text-gray-600 text-sm">Phone</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Phone</p>
                 <p className="font-medium">{profile.phone_number}</p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Location</p>
-                <p className="font-medium">{profile.location || 'Not set'}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Location</p>
+                <p className="font-medium">
+                  {profile.lga_name ? `${profile.lga_name}, ${profile.state_name}` : profile.location || 'Not set'}
+                </p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Subscription</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Subscription</p>
                 <p className="font-medium capitalize">{profile.subscription_tier}</p>
               </div>
               {user.role === 'artisan' && (
                 <>
                   <div>
-                    <p className="text-gray-600 text-sm">Bids Remaining</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Bids Remaining</p>
                     <p className="font-medium">{profile.bids_remaining}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600 text-sm">NIN Verification</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">NIN Verification</p>
                     <p className="font-medium">
                       {artisanProfile?.is_verified || profile.is_verified ? (
-                        <span className="text-green-600">✓ Verified</span>
+                        <span className="text-green-600 dark:text-green-400">✓ Verified</span>
                       ) : (
                         <span className="text-red-500">Not Verified</span>
                       )}
@@ -264,7 +268,7 @@ export default function DashboardPage() {
                 {!artisanProfile?.is_verified && !profile.is_verified && (
                   <button
                     onClick={() => setShowNINModal(true)}
-                    className="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                    className="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 dark:hover:bg-indigo-800"
                   >
                     Verify with NIN
                   </button>
@@ -272,7 +276,7 @@ export default function DashboardPage() {
                 {(profile.bids_remaining < 5) && (
                   <button
                     onClick={() => setShowPurchaseModal(true)}
-                    className="px-4 py-2 bg-amber-600 text-white text-sm rounded hover:bg-amber-700"
+                    className="px-4 py-2 bg-amber-600 text-white text-sm rounded hover:bg-amber-700 dark:hover:bg-amber-800"
                   >
                     Buy Bids
                   </button>
@@ -284,7 +288,7 @@ export default function DashboardPage() {
 
         {/* My Portfolio Section (Artisan only) */}
         {user.role === 'artisan' && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">My Portfolio</h2>
               <div>
@@ -298,7 +302,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => portfolioInputRef.current?.click()}
                   disabled={uploadingPortfolio}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 dark:hover:bg-blue-800"
                 >
                   {uploadingPortfolio ? 'Uploading...' : 'Upload Image'}
                 </button>
@@ -317,7 +321,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No portfolio images yet. Upload your work to showcase your skills.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">No portfolio images yet. Upload your work to showcase your skills.</p>
             )}
           </div>
         )}
@@ -326,29 +330,29 @@ export default function DashboardPage() {
       {/* NIN Verification Modal */}
       {showNINModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">Verify with NIN</h3>
-            <p className="text-sm text-gray-600 mb-4">Enter your 11-digit National Identification Number (NIN) to verify your identity.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Enter your 11-digit National Identification Number (NIN) to verify your identity.</p>
             <input
               type="text"
               value={nin}
               onChange={(e) => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
               placeholder="Enter 11-digit NIN"
               maxLength={11}
-              className="w-full px-3 py-2 border rounded-lg mb-4"
+              className="w-full px-3 py-2 border rounded-lg mb-4 dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
               autoFocus
             />
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => { setShowNINModal(false); setNin(''); }}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded dark:text-gray-400 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
               <button
                 onClick={handleVerifyNIN}
                 disabled={nin.length !== 11 || verifying}
-                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
+                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 dark:hover:bg-indigo-800"
               >
                 {verifying ? 'Verifying...' : 'Verify'}
               </button>
@@ -360,15 +364,15 @@ export default function DashboardPage() {
       {/* Purchase Bids Modal */}
       {showPurchaseModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">Purchase Bids</h3>
-            <p className="text-sm text-gray-600 mb-4">Choose a bid package to increase your bidding power.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose a bid package to increase your bidding power.</p>
             <div className="space-y-2 mb-6">
               {BID_PRICING.map((option) => (
                 <label
                   key={option.quantity}
                   className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${
-                    selectedQuantity === option.quantity ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                    selectedQuantity === option.quantity ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20' : 'hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -388,14 +392,14 @@ export default function DashboardPage() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowPurchaseModal(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded dark:text-gray-400 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
               <button
                 onClick={handlePurchaseBids}
                 disabled={purchasing}
-                className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50"
+                className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50 dark:hover:bg-amber-800"
               >
                 {purchasing ? 'Processing...' : `Pay ₦${BID_PRICING.find(o => o.quantity === selectedQuantity)?.price.toLocaleString()}`}
               </button>

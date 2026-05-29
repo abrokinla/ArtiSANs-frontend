@@ -52,13 +52,13 @@ export default function ArtisanProfilePage() {
   if (!artisan) return <div className="text-center py-12">Artisan not found</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23]">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Profile */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div className="flex items-start mb-6">
+            <div className="lg:col-span-2">
+              <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 mb-6 dark:border dark:border-gray-700">
+                  <div className="flex items-start mb-6">
                   {artisan.profile_picture_url || artisan.user?.profile?.profile_picture_url ? (
                     <img
                       src={artisan.profile_picture_url || artisan.user?.profile?.profile_picture_url}
@@ -66,26 +66,28 @@ export default function ArtisanProfilePage() {
                       className="w-24 h-24 rounded-full object-cover mr-6"
                     />
                   ) : (
-                    <div className="w-24 h-24 bg-gray-300 rounded-full mr-6 flex-shrink-0"></div>
+                    <div className="w-24 h-24 bg-gray-300 dark:bg-gray-700 rounded-full mr-6 flex-shrink-0"></div>
                   )}
                   <div className="flex-1">
                     <h1 className="text-3xl font-bold mb-2">
                       {artisan.user.first_name} {artisan.user.last_name}
                     </h1>
-                    <p className="text-gray-600 mb-2">{artisan.location}</p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-2">
+                      {artisan.lga_name ? `${artisan.lga_name}, ${artisan.state_name}` : artisan.location || 'Location not set'}
+                    </p>
                     <div className="flex items-center mb-2">
                       <span className="text-yellow-500 text-xl mr-1">★</span>
                       <span className="font-medium text-lg">{artisan.average_rating.toFixed(1)}</span>
-                      <span className="text-gray-500 ml-2">({artisan.reviews_count} reviews)</span>
+                      <span className="text-gray-500 dark:text-gray-400 ml-2">({artisan.reviews_count} reviews)</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {artisan.is_verified && (
-                        <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                        <span className="inline-block bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-3 py-1 rounded-full text-sm">
                           ✓ Verified Artisan
                         </span>
                       )}
                       {artisan.can_travel && (
-                        <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                        <span className="inline-block bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full text-sm">
                           🌍 Willing to Travel
                         </span>
                       )}
@@ -95,14 +97,14 @@ export default function ArtisanProfilePage() {
 
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-3">About</h2>
-                <p className="text-gray-700">{artisan.bio || 'No bio provided.'}</p>
+                <p className="text-gray-700 dark:text-gray-300">{artisan.bio || 'No bio provided.'}</p>
               </div>
 
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-3">Categories</h2>
                 <div className="flex flex-wrap gap-2">
                   {artisan.categories.map((cat: string, idx: number) => (
-                    <span key={idx} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                    <span key={idx} className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full">
                       {cat}
                     </span>
                   ))}
@@ -112,15 +114,15 @@ export default function ArtisanProfilePage() {
               {artisan.availability && (
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold mb-3">Availability</h2>
-                  <p className="text-gray-700">{artisan.availability}</p>
+                  <p className="text-gray-700 dark:text-gray-300">{artisan.availability}</p>
                 </div>
               )}
             </div>
 
             {/* Portfolio Section */}
-            {artisan.portfolio_images?.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 className="text-xl font-semibold mb-4">Previous Work</h2>
+              {artisan.portfolio_images?.length > 0 && (
+                <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 mb-6 dark:border dark:border-gray-700">
+                  <h2 className="text-xl font-semibold mb-4">Previous Work</h2>
                 <div className="grid grid-cols-3 gap-3">
                   {artisan.portfolio_images.map((img: any, idx: number) => (
                     <div key={idx} className="aspect-square rounded-lg overflow-hidden">
@@ -136,14 +138,14 @@ export default function ArtisanProfilePage() {
             )}
 
             {/* Reviews Section */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 dark:border dark:border-gray-700">
               <h2 className="text-xl font-semibold mb-4">Reviews</h2>
               {artisan.reviews && artisan.reviews.length > 0 ? (
                 <div className="space-y-4">
                   {artisan.reviews.map((review: any, idx: number) => (
-                    <div key={idx} className="border-b pb-4 last:border-b-0">
+                    <div key={idx} className="border-b dark:border-gray-700 pb-4 last:border-b-0">
                       <div className="flex items-center mb-2">
-                        <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+                        <div className="w-10 h-10 bg-gray-300 dark:bg-gray-700 rounded-full mr-3"></div>
                         <div>
                           <p className="font-medium">{review.reviewer_username}</p>
                           <div className="flex items-center">
@@ -155,21 +157,21 @@ export default function ArtisanProfilePage() {
                           </div>
                         </div>
                       </div>
-                      <p className="text-gray-700">{review.comment}</p>
+                      <p className="text-gray-700 dark:text-gray-300">{review.comment}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500">No reviews yet.</p>
+                <p className="text-gray-500 dark:text-gray-400">No reviews yet.</p>
               )}
             </div>
           </div>
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+            <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 sticky top-4 dark:border dark:border-gray-700">
               <div className="mb-4">
-                <p className="text-gray-600 mb-1">Total Earnings</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-1">Total Earnings</p>
                 <p className="text-2xl font-bold">₦{parseFloat(artisan.total_earnings).toLocaleString()}</p>
               </div>
               
@@ -180,7 +182,7 @@ export default function ArtisanProfilePage() {
                 Hire {artisan.user.first_name}
               </button>
               
-              <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 font-semibold">
+              <button className="w-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold">
                 Send Message
               </button>
             </div>

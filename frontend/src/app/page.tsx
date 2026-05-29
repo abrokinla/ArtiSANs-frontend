@@ -33,9 +33,9 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white dark:bg-[#1a1a2e]">
       {/* Hero Section - Airbnb Inspired */}
-      <section className="relative bg-white py-24 md:py-32">
+      <section className="relative bg-white dark:bg-[#1a1a2e] py-24 md:py-32">
         <div className="container mx-auto px-4 text-center max-w-4xl">
           <h1 className="text-display mb-6 text-text-primary">
             Find Trusted Local Artisans in Nigeria
@@ -119,7 +119,7 @@ export default function Home() {
                       <p className="card-subtitle mb-4 line-clamp-2">{job.description}</p>
                       <div className="flex items-center justify-between text-caption text-text-secondary mb-3">
                         <span>{job.category_name}</span>
-                        <span>{job.location}</span>
+                        <span>{job.lga_name ? `${job.lga_name}, ${job.state_name}` : job.location}</span>
                       </div>
                       {job.budget && (
                         <div className="font-semibold text-text-primary">
@@ -158,7 +158,7 @@ export default function Home() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-text-primary">{artisan.first_name} {artisan.last_name}</h3>
-                          <p className="text-sm text-text-secondary">{artisan.location}</p>
+                          <p className="text-sm text-text-secondary">{artisan.lga_name ? `${artisan.lga_name}, ${artisan.state_name}` : artisan.location}</p>
                         </div>
                       </div>
                       <div className="flex items-center mb-3">
@@ -188,7 +188,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="section bg-white border-t border-gray-100">
+      <section className="section bg-white dark:bg-[#1a1a2e] border-t border-gray-100 dark:border-gray-800">
         <div className="container mx-auto px-4 text-center max-w-3xl">
           <h2 className="text-display mb-4 text-text-primary">Ready to get started?</h2>
           <p className="text-feature text-text-secondary mb-10">

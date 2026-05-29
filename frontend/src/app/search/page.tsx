@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { searchArtisans, getCategories } from '@/lib/api';
+import LocationSelect from '@/components/LocationSelect';
+import type { LocationValue } from '@/components/LocationSelect';
 import { useRouter } from 'next/navigation';
 
 export default function SearchPage() {
@@ -12,6 +14,10 @@ export default function SearchPage() {
     category: '',
     location: '',
     min_rating: '',
+  });
+  const [locationValue, setLocationValue] = useState<LocationValue>({
+    state_id: null,
+    lga_id: null,
   });
   const router = useRouter();
 
@@ -39,6 +45,8 @@ export default function SearchPage() {
       const params: any = {};
       if (filters.category) params.category = filters.category;
       if (filters.location) params.location = filters.location;
+      if (locationValue.state_id) params.state = locationValue.state_id;
+      if (locationValue.lga_id) params.lga = locationValue.lga_id;
       if (filters.min_rating) params.min_rating = parseFloat(filters.min_rating);
       
       const results = await searchArtisans(params);
@@ -51,9 +59,9 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23]">
       {/* Search Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white dark:bg-[#1a1a2e] shadow-sm">
         <div className="container mx-auto px-4 py-6">
           <div className="flex gap-4 flex-wrap">
             <select
@@ -67,13 +75,13 @@ export default function SearchPage() {
               ))}
             </select>
             
-            <input
-              type="text"
-              placeholder="Location"
-              value={filters.location}
-              onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-              className="px-4 py-2 border rounded-lg flex-1"
-            />
+            <div className="flex-1">
+              <LocationSelect
+                value={locationValue}
+                onChange={setLocationValue}
+                label=""
+              />
+            </div>
             
             <select
               value={filters.min_rating}
@@ -103,7 +111,7 @@ export default function SearchPage() {
         {loading ? (
           <div className="text-center py-12">Loading...</div>
         ) : artisans.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             No artisans found. Try adjusting your filters.
           </div>
         ) : (
@@ -112,7 +120,7 @@ export default function SearchPage() {
               <div
                 key={artisan.id}
                 onClick={() => router.push(`/artisans/${artisan.id}`)}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer"
+                className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 hover:shadow-lg dark:hover:shadow-gray-900/60 transition cursor-pointer"
               >
                 <div className="flex items-start mb-4">
                   {artisan.profile_picture_url ? (
@@ -122,21 +130,23 @@ export default function SearchPage() {
                       className="w-16 h-16 rounded-full object-cover mr-4"
                     />
                   ) : (
-                    <div className="w-16 h-16 bg-gray-300 rounded-full mr-4 flex-shrink-0"></div>
+                    <div className="w-16 h-16 bg-gray-300 dark:bg-gray-700 rounded-full mr-4 flex-shrink-0"></div>
                   )}
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">
                       {artisan.first_name} {artisan.last_name}
                     </h3>
-                    <p className="text-gray-600 text-sm">{artisan.location}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      {artisan.lga_name ? `${artisan.lga_name}, ${artisan.state_name}` : artisan.location || 'Location not set'}
+                    </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {artisan.is_verified && (
-                        <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                        <span className="inline-block bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-xs px-2 py-1 rounded">
                           Verified ✓
                         </span>
                       )}
                       {artisan.can_travel && (
-                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                        <span className="inline-block bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 text-xs px-2 py-1 rounded">
                           🌍 Travel
                         </span>
                       )}
@@ -147,17 +157,17 @@ export default function SearchPage() {
                 <div className="flex items-center mb-2">
                   <span className="text-yellow-500 mr-1">★</span>
                   <span className="font-medium">{artisan.average_rating.toFixed(1)}</span>
-                  <span className="text-gray-500 ml-1">({artisan.review_count} reviews)</span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">({artisan.review_count} reviews)</span>
                   {artisan.portfolio_images?.length > 0 && (
-                    <span className="text-gray-500 text-xs ml-2">📷 {artisan.portfolio_images.length} photos</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs ml-2">📷 {artisan.portfolio_images.length} photos</span>
                   )}
                 </div>
                 
-                <p className="text-gray-600 text-sm mb-3">{artisan.bio}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{artisan.bio}</p>
                 
                 <div className="flex flex-wrap gap-1">
                   {artisan.categories.map((cat: string, idx: number) => (
-                    <span key={idx} className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded">
+                    <span key={idx} className="bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 text-xs px-2 py-1 rounded">
                       {cat}
                     </span>
                   ))}

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createJob, uploadJobImage, getCategories } from '@/lib/api';
+import LocationSelect from '@/components/LocationSelect';
+import type { LocationValue } from '@/components/LocationSelect';
 
 interface Category {
   id: number;
@@ -33,6 +35,12 @@ export default function PostJobPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [locationValue, setLocationValue] = useState<LocationValue>({
+    state_id: null,
+    lga_id: null,
+    state_name: '',
+    lga_name: '',
+  });
   const router = useRouter();
   const { isLoggedIn, user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,11 +70,11 @@ export default function PostJobPage() {
   // Show access denied message for artisans
   if (isLoggedIn && user?.role !== 'client') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23] flex items-center justify-center">
         <div className="text-center">
           <div className="text-[#ff385c] text-5xl mb-4">✕</div>
-          <h2 className="text-2xl font-bold mb-2 text-[#222222]">Access Denied</h2>
-          <p className="text-gray-600 mb-4">Only clients can post jobs. Artisans can browse and apply for jobs.</p>
+          <h2 className="text-2xl font-bold mb-2 text-[#222222] dark:text-gray-200">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Only clients can post jobs. Artisans can browse and apply for jobs.</p>
           <button
             onClick={() => router.push('/')}
             className="bg-[#ff385c] text-white px-6 py-2 rounded-lg hover:bg-[#e31c5f] transition-colors font-medium"
@@ -146,6 +154,8 @@ export default function PostJobPage() {
           category: formData.category_id,
           budget: parseFloat(formData.budget) || null,
           images: images,
+          state: locationValue.state_id,
+          lga: locationValue.lga_id,
         },
         token
       );
@@ -173,22 +183,22 @@ export default function PostJobPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-green-600 text-5xl mb-4">✓</div>
-          <h2 className="text-2xl font-bold mb-2 text-[#222222]">Job Posted Successfully!</h2>
-          <p className="text-gray-600">Redirecting to dashboard...</p>
+          <div className="text-green-600 dark:text-green-400 text-5xl mb-4">✓</div>
+          <h2 className="text-2xl font-bold mb-2 text-[#222222] dark:text-gray-200">Job Posted Successfully!</h2>
+          <p className="text-gray-600 dark:text-gray-400">Redirecting to dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23] py-8">
       <div className="container mx-auto px-4 max-w-2xl">
-        <h1 className="text-3xl font-bold mb-8 text-[#222222]">Post a Job</h1>
+        <h1 className="text-3xl font-bold mb-8 text-[#222222] dark:text-gray-200">Post a Job</h1>
 
-        <div className="bg-white rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)] p-6">
+        <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-gray-900/60 p-6">
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 border border-red-200">
               {error}
@@ -197,36 +207,36 @@ export default function PostJobPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#222222]">Job Title</label>
+              <label className="block text-sm font-medium mb-1.5 text-[#222222] dark:text-gray-200">Job Title</label>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                 placeholder="e.g., Fix leaky faucet"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#222222]">Description</label>
+              <label className="block text-sm font-medium mb-1.5 text-[#222222] dark:text-gray-200">Description</label>
               <textarea
                 required
                 rows={4}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow resize-none"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow resize-none dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                 placeholder="Describe the work needed..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#222222]">Category</label>
+              <label className="block text-sm font-medium mb-1.5 text-[#222222] dark:text-gray-200">Category</label>
               <select
                 required
                 value={formData.category_id}
                 onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
               >
                 <option value="">Select a category</option>
                 {categories.map((cat) => (
@@ -236,34 +246,33 @@ export default function PostJobPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#222222]">Location</label>
-              <input
-                type="text"
+              <LocationSelect
+                value={locationValue}
+                onChange={setLocationValue}
                 required
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow"
-                placeholder="e.g., Lagos, Ikeja"
+                includeAddress
+                addressValue={formData.location}
+                onAddressChange={(val) => setFormData({ ...formData, location: val })}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#222222]">Budget (optional)</label>
+              <label className="block text-sm font-medium mb-1.5 text-[#222222] dark:text-gray-200">Budget (optional)</label>
               <input
                 type="number"
                 value={formData.budget}
                 onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                 placeholder="e.g., 5000"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#222222]">Priority</label>
+              <label className="block text-sm font-medium mb-1.5 text-[#222222] dark:text-gray-200">Priority</label>
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -274,10 +283,10 @@ export default function PostJobPage() {
 
             {/* Job Images Upload */}
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#222222]">
-                Job Images <span className="text-gray-400 font-normal">(optional, max 5)</span>
+              <label className="block text-sm font-medium mb-1.5 text-[#222222] dark:text-gray-200">
+                Job Images <span className="text-gray-400 dark:text-gray-500 font-normal">(optional, max 5)</span>
               </label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Upload images to help artisans understand the work better
               </p>
 
@@ -295,12 +304,12 @@ export default function PostJobPage() {
                       <img
                         src={img.url}
                         alt={`Job image ${index + 1}`}
-                        className="w-full h-full object-cover rounded-lg border border-gray-200"
+                        className="w-full h-full object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                       />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-[#ff385c] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-md hover:bg-[#e31c5f] transition-colors opacity-0 group-hover:opacity-100"
+                        className="absolute -top-2 -right-2 bg-[#ff385c] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-md dark:shadow-gray-900/60 hover:bg-[#e31c5f] transition-colors opacity-0 group-hover:opacity-100"
                         title="Remove image"
                       >
                         ✕
@@ -316,22 +325,22 @@ export default function PostJobPage() {
                   onClick={() => !uploadingImages && fileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
                     uploadingImages
-                      ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                      : 'border-gray-300 hover:border-[#ff385c] hover:bg-red-50/30'
+                      ? 'border-gray-200 bg-gray-50 cursor-not-allowed dark:border-gray-700 dark:bg-gray-800'
+                      : 'border-gray-300 hover:border-[#ff385c] hover:bg-red-50/30 dark:border-gray-600'
                   }`}
                 >
                   {uploadingImages ? (
                     <div className="flex flex-col items-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff385c] mb-2"></div>
-                      <span className="text-sm text-gray-500">Uploading...</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Uploading...</span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
                       <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span className="text-sm text-gray-600 font-medium">Click to upload images</span>
-                      <span className="text-xs text-gray-400 mt-1">JPEG, PNG, WebP • Max 5MB each</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Click to upload images</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">JPEG, PNG, WebP • Max 5MB each</span>
                     </div>
                   )}
                 </div>

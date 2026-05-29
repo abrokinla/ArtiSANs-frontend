@@ -59,11 +59,15 @@ export async function getCategories() {
 export async function searchArtisans(params: {
   category?: string;
   location?: string;
+  state?: number;
+  lga?: number;
   min_rating?: number;
 }) {
   const query = new URLSearchParams();
   if (params.category) query.set('category', params.category);
   if (params.location) query.set('location', params.location);
+  if (params.state) query.set('state', params.state.toString());
+  if (params.lga) query.set('lga', params.lga.toString());
   if (params.min_rating) query.set('min_rating', params.min_rating.toString());
   
   return apiRequest(`/search/artisans/?${query.toString()}`);
@@ -82,9 +86,11 @@ export async function updateArtisanProfile(data: any, token: string) {
 }
 
 // Jobs
-export async function getJobs(params: { status?: string } = {}) {
+export async function getJobs(params: { status?: string; state?: number; lga?: number } = {}) {
   const query = new URLSearchParams();
   if (params.status) query.set('status', params.status);
+  if (params.state) query.set('state', params.state.toString());
+  if (params.lga) query.set('lga', params.lga.toString());
   return apiRequest(`/jobs/?${query.toString()}`);
 }
 
@@ -190,6 +196,15 @@ export async function purchaseBids(quantity: number, token: string) {
     token,
     body: JSON.stringify({ quantity }),
   });
+}
+
+// Locations
+export async function fetchStates(): Promise<{ id: number; name: string; code: string }[]> {
+  return apiRequest('/locations/states/');
+}
+
+export async function fetchLGAs(stateId: number): Promise<{ id: number; name: string }[]> {
+  return apiRequest(`/locations/lgas/?state_id=${stateId}`);
 }
 
 export async function verifyNIN(nin: string, token: string) {

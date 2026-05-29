@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
@@ -19,8 +20,10 @@ module.exports = {
         },
         'text': {
           primary: '#222222',
+          'primary-dark': '#f0f0f0',
           focused: '#3f3f3f',
           secondary: '#6a6a6a',
+          'secondary-dark': '#a0a0a0',
           disabled: 'rgba(0, 0, 0, 0.24)',
           error: '#c13515',
           legal: '#428bff',
@@ -32,6 +35,11 @@ module.exports = {
         'border': {
           DEFAULT: '#c1c1c1',
           light: 'rgba(0, 0, 0, 0.08)',
+        },
+        'surface': {
+          DEFAULT: '#ffffff',
+          dark: '#1a1a2e',
+          'dark-elevated': '#16213e',
         },
       },
       fontFamily: {
@@ -48,6 +56,7 @@ module.exports = {
       boxShadow: {
         'card': 'rgba(0, 0, 0, 0.02) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 6px, rgba(0, 0, 0, 0.1) 0px 4px 8px',
         'hover': 'rgba(0, 0, 0, 0.08) 0px 4px 12px',
+        'card-dark': 'rgba(0, 0, 0, 0.3) 0px 0px 0px 1px, rgba(0, 0, 0, 0.4) 0px 2px 6px, rgba(0, 0, 0, 0.5) 0px 4px 8px',
       },
       spacing: {
         '18': '4.5rem',

@@ -29,7 +29,7 @@ export default function SubmitReviewForm({ onSubmit, disabled }: SubmitReviewFor
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 p-4 bg-gray-50 rounded">
+    <form onSubmit={handleSubmit} className="mb-6 p-4 bg-gray-50 dark:bg-[#0f0f23] rounded">
       <h3 className="font-semibold mb-3">Write a Review</h3>
       <div className="mb-3">
         <label className="block text-sm font-medium mb-1">Rating</label>
@@ -39,7 +39,7 @@ export default function SubmitReviewForm({ onSubmit, disabled }: SubmitReviewFor
               key={star}
               type="button"
               onClick={() => setRating(star)}
-              className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+              className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
             >
               ★
             </button>
@@ -51,7 +51,7 @@ export default function SubmitReviewForm({ onSubmit, disabled }: SubmitReviewFor
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
+          className="w-full px-3 py-2 border rounded dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
           rows={3}
           required
         />

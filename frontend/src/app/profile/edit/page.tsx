@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getMyProfile, updateMyProfile, updateArtisanProfile, getArtisanProfile, uploadProfileImage, uploadPortfolioImage } from '@/lib/api';
+import LocationSelect from '@/components/LocationSelect';
+import type { LocationValue } from '@/components/LocationSelect';
 import Link from 'next/link';
 
 export default function EditProfilePage() {
@@ -49,6 +51,13 @@ export default function EditProfilePage() {
     available_hours_end: '18:00',
   });
 
+  const [locationValue, setLocationValue] = useState<LocationValue>({
+    state_id: null,
+    lga_id: null,
+    state_name: '',
+    lga_name: '',
+  });
+
   // Redirect if not logged in (wait for auth to initialize)
   useEffect(() => {
     if (authChecked && !isLoggedIn) {
@@ -88,6 +97,12 @@ export default function EditProfilePage() {
           bio: profile.bio || '',
           profile_picture_url: profile.profile_picture_url || '',
         }));
+        setLocationValue({
+          state_id: profile.state || null,
+          lga_id: profile.lga || null,
+          state_name: profile.state_name || '',
+          lga_name: profile.lga_name || '',
+        });
 
         // If artisan, fetch artisan profile
         if (user.role === 'artisan') {
@@ -219,17 +234,19 @@ export default function EditProfilePage() {
       }
 
       // Update profile (common fields)
-      const profileData = {
+      const profileData: any = {
         phone_number: formData.phone_number,
         location: formData.location,
         bio: formData.bio,
         profile_picture_url: formData.profile_picture_url,
       };
+      if (locationValue.state_id) profileData.state = locationValue.state_id;
+      if (locationValue.lga_id) profileData.lga = locationValue.lga_id;
       await updateMyProfile(profileData, token);
 
       // If artisan, update artisan profile
       if (user?.role === 'artisan') {
-        const artisanData = {
+        const artisanData: any = {
           experience: formData.experience,
           whatsapp: formData.whatsapp,
           tel: formData.tel,
@@ -240,6 +257,8 @@ export default function EditProfilePage() {
           available_hours_start: formData.available_hours_start,
           available_hours_end: formData.available_hours_end,
         };
+        if (locationValue.state_id) artisanData.state = locationValue.state_id;
+        if (locationValue.lga_id) artisanData.lga = locationValue.lga_id;
         await updateArtisanProfile(artisanData, token);
       }
 
@@ -270,28 +289,28 @@ export default function EditProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12">
+    <main className="min-h-screen bg-gray-50 dark:bg-[#0f0f23] py-12">
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Edit Profile</h1>
-          <Link href="/dashboard" className="text-blue-600 hover:text-blue-800">
+          <h1 className="text-3xl font-bold dark:text-gray-200">Edit Profile</h1>
+          <Link href="/dashboard" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
             ← Back to Dashboard
           </Link>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          <div className="bg-red-100 border border-red-400 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300 px-4 py-3 rounded mb-6">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+          <div className="bg-green-100 border border-green-400 text-green-700 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300 px-4 py-3 rounded mb-6">
             {success}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 space-y-6">
           {/* Profile Picture Section */}
           <section>
             <h2 className="text-xl font-semibold mb-4">Profile Picture</h2>
@@ -316,10 +335,10 @@ export default function EditProfilePage() {
                   relative w-32 h-32 rounded-full overflow-hidden cursor-pointer
                   border-4 transition-all duration-200
                   ${dragActive
-                    ? 'border-blue-500 bg-blue-50 scale-105'
-                    : 'border-gray-200 hover:border-blue-400 bg-gray-100'}
+                    ? 'border-blue-500 bg-blue-50 scale-105 dark:bg-blue-900/20'
+                    : 'border-gray-200 hover:border-blue-400 bg-gray-100 dark:border-gray-700 dark:bg-gray-800'}
                   ${uploading ? 'opacity-70 pointer-events-none' : ''}
-                  shadow-md
+                  shadow-md dark:shadow-gray-900/60
                 `}
               >
                 {formData.profile_picture_url ? (
@@ -364,7 +383,7 @@ export default function EditProfilePage() {
                   type="button"
                   onClick={handleBrowseClick}
                   disabled={uploading}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -377,7 +396,7 @@ export default function EditProfilePage() {
                     type="button"
                     onClick={handleRemovePhoto}
                     disabled={uploading}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -387,12 +406,12 @@ export default function EditProfilePage() {
                 )}
               </div>
 
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                 JPEG, PNG or WebP. Max 5MB. Drag & drop or click to browse.
               </p>
 
               {uploadError && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2 rounded-md w-full text-center">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm px-4 py-2 rounded-md w-full text-center">
                   {uploadError}
                 </div>
               )}
@@ -452,13 +471,13 @@ export default function EditProfilePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm mb-3">No portfolio images yet.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">No portfolio images yet.</p>
               )}
               <button
                 type="button"
                 onClick={() => portfolioInputRef.current?.click()}
                 disabled={uploadingPortfolio}
-                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 border rounded-md hover:bg-gray-200 disabled:opacity-50"
+                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 {uploadingPortfolio ? 'Uploading...' : 'Add Image'}
               </button>
@@ -470,7 +489,7 @@ export default function EditProfilePage() {
             <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   First Name
                 </label>
                 <input
@@ -478,11 +497,11 @@ export default function EditProfilePage() {
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Last Name
                 </label>
                 <input
@@ -490,11 +509,11 @@ export default function EditProfilePage() {
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email
                 </label>
                 <input
@@ -502,7 +521,7 @@ export default function EditProfilePage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                   disabled
                 />
               </div>
@@ -514,7 +533,7 @@ export default function EditProfilePage() {
             <h2 className="text-xl font-semibold mb-4">Contact & Location</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Phone Number
                 </label>
                 <input
@@ -522,22 +541,16 @@ export default function EditProfilePage() {
                   name="phone_number"
                   value={formData.phone_number}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder="e.g., Lagos, Victoria Island"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                />
-              </div>
+              <LocationSelect
+                value={locationValue}
+                onChange={setLocationValue}
+                includeAddress
+                addressValue={formData.location}
+                onAddressChange={(val) => setFormData(prev => ({ ...prev, location: val }))}
+              />
             </div>
           </section>
 
@@ -550,7 +563,7 @@ export default function EditProfilePage() {
               onChange={handleChange}
               rows={4}
               placeholder="Tell us about yourself..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
             />
           </section>
 
@@ -560,7 +573,7 @@ export default function EditProfilePage() {
               <h2 className="text-xl font-semibold mb-4">Artisan Details</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Experience
                   </label>
                   <textarea
@@ -569,12 +582,12 @@ export default function EditProfilePage() {
                     onChange={handleChange}
                     rows={3}
                     placeholder="Describe your experience..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       WhatsApp Number
                     </label>
                     <input
@@ -583,11 +596,11 @@ export default function EditProfilePage() {
                       value={formData.whatsapp}
                       onChange={handleChange}
                       placeholder="e.g., +234****5678"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Telephone Number
                     </label>
                     <input
@@ -596,7 +609,7 @@ export default function EditProfilePage() {
                       value={formData.tel}
                       onChange={handleChange}
                       placeholder="e.g., +234****5678"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                     />
                   </div>
                 </div>
@@ -607,9 +620,9 @@ export default function EditProfilePage() {
                       name="is_available"
                       checked={formData.is_available}
                       onChange={handleChange}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-gray-300 text-blue-600 dark:border-gray-600 dark:text-blue-400 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-gray-700">Available for work</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Available for work</span>
                   </label>
                 </div>
                 <div>
@@ -619,9 +632,9 @@ export default function EditProfilePage() {
                       name="can_travel"
                       checked={formData.can_travel}
                       onChange={handleChange}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-gray-300 text-blue-600 dark:border-gray-600 dark:text-blue-400 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-gray-700">Willing to Travel</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Willing to Travel</span>
                   </label>
                 </div>
               </div>
@@ -633,7 +646,7 @@ export default function EditProfilePage() {
             <button
               type="submit"
               disabled={saving || uploading}
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              className="bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>

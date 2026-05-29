@@ -28,6 +28,9 @@
   --color-bg-primary: #ffffff;     /* Pure white background */
   --color-bg-secondary: #f2f2f2;   /* Light surface, circular nav */
   --color-bg-tertiary: #f7f7f7;    /* Subtle section backgrounds */
+  --color-surface-card: #ffffff;
+  --color-surface-hover: #f5f5f5;
+  --color-surface-modal: #ffffff;
 
   /* Border & Divider */
   --color-border: #c1c1c1;
@@ -61,6 +64,33 @@
   --space-3xl: 64px;
 }
 
+/* Dark Mode Overrides */
+.dark {
+  --color-text-primary: #ededed;
+  --color-text-focused: #d0d0d0;
+  --color-text-secondary: #a0a0a0;
+  --color-text-disabled: rgba(255, 255, 255, 0.24);
+  --color-text-link-disabled: #6a6a6a;
+  --color-text-error: #ef4444;
+  --color-text-legal: #60a5fa;
+
+  --color-bg-primary: #0f0f23;
+  --color-bg-secondary: #1a1a2e;
+  --color-bg-tertiary: #16213e;
+  --color-surface-card: #1a1a2e;
+  --color-surface-hover: #252545;
+  --color-surface-modal: #1e1e3a;
+
+  --color-border: #3a3a5c;
+  --color-border-light: rgba(255, 255, 255, 0.08);
+
+  --shadow-card: rgba(0, 0, 0, 0.4) 0px 0px 0px 1px,
+                 rgba(0, 0, 0, 0.5) 0px 2px 6px,
+                 rgba(0, 0, 0, 0.6) 0px 4px 8px;
+  --shadow-hover: rgba(0, 0, 0, 0.5) 0px 4px 12px;
+  --shadow-button: rgba(0, 0, 0, 0.4) 0px 2px 4px;
+}
+
 /* Base Typography */
 body {
   font-family: var(--font-primary);
@@ -68,6 +98,29 @@ body {
   background: var(--color-bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Base dark scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+/* Selection color */
+.dark ::selection {
+  background: rgba(255, 56, 92, 0.3);
+  color: #ffffff;
+}
+::selection {
+  background: rgba(255, 56, 92, 0.2);
+  color: inherit;
 }
 
 /* ============================================
@@ -220,6 +273,12 @@ body {
   box-shadow: var(--shadow-hover);
 }
 
+.dark .btn-secondary {
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
 .btn-outline {
   background: transparent;
   color: var(--color-text-primary);
@@ -235,6 +294,15 @@ body {
 }
 
 .btn-outline:hover {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
+.dark .btn-outline {
+  border-color: var(--color-text-primary);
+}
+
+.dark .btn-outline:hover {
   background: var(--color-text-primary);
   color: var(--color-bg-primary);
 }
@@ -259,9 +327,13 @@ body {
   transform: translateX(2px);
 }
 
+.dark .btn-circle {
+  background: var(--color-surface-card);
+}
+
 /* Cards */
 .card {
-  background: var(--color-bg-primary);
+  background: var(--color-surface-card);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
@@ -314,14 +386,29 @@ body {
   color: #2e7d32;
 }
 
+.dark .badge-success {
+  background: rgba(46, 125, 50, 0.25);
+  color: #81c784;
+}
+
 .badge-info {
   background: #e3f2fd;
   color: #1565c0;
 }
 
+.dark .badge-info {
+  background: rgba(21, 101, 192, 0.25);
+  color: #90caf9;
+}
+
 .badge-warning {
   background: #fff3e0;
   color: #e65100;
+}
+
+.dark .badge-warning {
+  background: rgba(230, 81, 0, 0.25);
+  color: #ffb74d;
 }
 
 /* Inputs */
@@ -344,19 +431,30 @@ body {
   box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1);
 }
 
+.dark .input:focus {
+  box-shadow: 0 0 0 2px rgba(237, 237, 237, 0.15);
+}
+
 .input::placeholder {
   color: var(--color-text-secondary);
+}
+
+.dark .input {
+  background: var(--color-surface-card);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
 /* Search Bar */
 .search-bar {
   display: flex;
   align-items: center;
-  background: var(--color-bg-primary);
+  background: var(--color-surface-card);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
   padding: var(--space-sm) var(--space-md);
   gap: var(--space-sm);
+  border: 1px solid var(--color-border-light);
 }
 
 .search-bar input {
@@ -394,6 +492,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Section */
@@ -455,6 +554,22 @@ body {
 .text-secondary { color: var(--color-text-secondary); }
 .bg-rausch { background-color: var(--color-rausch); }
 .bg-secondary { background-color: var(--color-bg-secondary); }
+
+/* ============================================
+   Dark Mode Transition Helpers
+   ============================================ */
+
+.theme-transition {
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* Dark modal backdrop */
+.dark .fixed.inset-0.bg-black\\/50 {
+  background-color: rgba(0, 0, 0, 0.7);
+}
 
 /* ============================================
    Responsive Breakpoints (matching Airbnb)

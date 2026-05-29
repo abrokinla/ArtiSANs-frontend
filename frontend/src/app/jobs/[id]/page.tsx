@@ -24,6 +24,8 @@ interface Job {
   budget?: number;
   final_amount?: number;
   location: string;
+  state_name?: string;
+  lga_name?: string;
   priority: string;
   category_name?: string;
   client_username: string;
@@ -169,40 +171,40 @@ export default function JobDetailsPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <Link href="/dashboard" className="text-blue-600 hover:underline mb-4 inline-block">
+      <Link href="/dashboard" className="text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block">
         ← Back to Dashboard
       </Link>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
             <h1 className="text-2xl font-bold mb-2">{job.title}</h1>
-            <div className="flex gap-2 text-sm text-gray-600">
+            <div className="flex gap-2 text-sm text-gray-600 dark:text-gray-400">
               <span className={`px-2 py-1 rounded ${
-                job.status === 'completed' ? 'bg-green-100 text-green-800' :
-                job.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                job.status === 'assigned' ? 'bg-purple-100 text-purple-800' :
-                job.status === 'bidding' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-gray-100 text-gray-800'
+                job.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                job.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                job.status === 'assigned' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
+                job.status === 'bidding' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
               }`}>
                 {job.status.replace('_', ' ').toUpperCase()}
               </span>
-              <span className="px-2 py-1 bg-gray-100 rounded">{job.priority.toUpperCase()}</span>
-              {job.category_name && <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{job.category_name}</span>}
+              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">{job.priority.toUpperCase()}</span>
+              {job.category_name && <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded">{job.category_name}</span>}
             </div>
           </div>
           {job.budget && (
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               ₦{job.budget.toLocaleString()}
             </div>
           )}
         </div>
 
-        <p className="text-gray-700 mb-4">{job.description}</p>
+        <p className="text-gray-700 dark:text-gray-300 mb-4">{job.description}</p>
 
-        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
           <div>
-            <strong>Location:</strong> {job.location}
+            <strong>Location:</strong> {job.lga_name ? `${job.lga_name}, ${job.state_name}` : job.location}
           </div>
           <div>
             <strong>Client:</strong> {job.client_username}
@@ -227,7 +229,7 @@ export default function JobDetailsPage() {
           {isAssignedArtisan && job.status === 'assigned' && (
             <button
               onClick={handleStartJob}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800"
             >
               Start Job
             </button>
@@ -236,7 +238,7 @@ export default function JobDetailsPage() {
           {isAssignedArtisan && job.status === 'in_progress' && (
             <button
               onClick={handleCompleteJob}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded hover:bg-green-700 dark:hover:bg-green-800"
             >
               Mark as Complete
             </button>
@@ -245,7 +247,7 @@ export default function JobDetailsPage() {
           {isClient && job.status === 'completed' && (
             <button
               onClick={handleConfirmCompletion}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded hover:bg-green-700 dark:hover:bg-green-800"
             >
               Confirm & Release Payment
             </button>
@@ -255,7 +257,7 @@ export default function JobDetailsPage() {
 
       {/* Bidding Section */}
       {(job.status === 'bidding' || job.status === 'assigned') && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Bids ({bids.length})</h2>
           
           {/* Place Bid Form (Artisans only) */}
@@ -279,7 +281,7 @@ export default function JobDetailsPage() {
 
       {/* Reviews Section */}
       {job.status === 'completed' && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Reviews</h2>
           
           {/* Submit Review (Client only) */}
