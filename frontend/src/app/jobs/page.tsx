@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getJobs, getMyArtisanProfile } from '@/lib/api';
+import { getJobs, getMyProfile, getMyArtisanProfile } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
@@ -9,22 +9,42 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [artisanCategoryIds, setArtisanCategoryIds] = useState<number[]>([]);
+  const [artisanStateId, setArtisanStateId] = useState<number | null>(null);
+  const [canTravel, setCanTravel] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const { user, token } = useAuth();
 
   useEffect(() => {
     async function loadJobs() {
       try {
-        const data = await getJobs({ status: 'bidding' });
-        const jobList = Array.isArray(data) ? data : data.results || [];
-        setJobs(jobList);
+        let artisanState: number | null = null;
+        let artisanCanTravel = false;
+        const categoryIds: number[] = [];
 
         if (user?.role === 'artisan' && token) {
-          const artisan = await getMyArtisanProfile(token);
+          const [profile, artisan] = await Promise.all([
+            getMyProfile(token),
+            getMyArtisanProfile(token),
+          ]);
+          artisanState = profile.state || null;
+          artisanCanTravel = artisan.can_travel || false;
           if (artisan.categories) {
-            setArtisanCategoryIds(artisan.categories.map((c: any) => c.id));
+            categoryIds.push(...artisan.categories.map((c: any) => c.id));
           }
         }
+
+        setArtisanStateId(artisanState);
+        setCanTravel(artisanCanTravel);
+        setArtisanCategoryIds(categoryIds);
+
+        const params: { status: string; state?: number } = { status: 'bidding' };
+        if (categoryIds.length > 0 && !artisanCanTravel && artisanState) {
+          params.state = artisanState;
+        }
+
+        const data = await getJobs(params);
+        const jobList = Array.isArray(data) ? data : data.results || [];
+        setJobs(jobList);
       } catch (error) {
         console.error('Error loading jobs:', error);
       } finally {
@@ -34,11 +54,32 @@ export default function JobsPage() {
     loadJobs();
   }, [user?.id, user?.role, token]);
 
-  const filteredJobs = showAll || artisanCategoryIds.length === 0
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
+
+  if (user?.role === 'artisan' && artisanCategoryIds.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23]">
+        <div className="container mx-auto px-4 py-8 text-center">
+          <h1 className="text-3xl font-bold mb-4">Available Jobs</h1>
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-8 max-w-md mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Complete your profile to find jobs matching your expertise.
+            </p>
+            <Link
+              href="/profile/edit"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            >
+              Complete Profile
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const filteredJobs = showAll
     ? jobs
     : jobs.filter((job) => job.category && artisanCategoryIds.includes(job.category));
-
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23]">
@@ -46,7 +87,11 @@ export default function JobsPage() {
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-bold">Available Jobs</h1>
         </div>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">Browse jobs open for bidding from clients</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          {artisanCategoryIds.length > 0 && !canTravel && artisanStateId
+            ? 'Jobs in your state matching your expertise'
+            : 'Browse jobs open for bidding from clients'}
+        </p>
 
         {artisanCategoryIds.length > 0 && (
           <div className="mb-6">

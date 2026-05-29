@@ -191,12 +191,34 @@ export default function DashboardPage() {
                 Post a Job
               </button>
             )}
-            <button
-              onClick={() => router.push('/search')}
-              className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 dark:hover:bg-green-800"
-            >
-              Find Artisans
-            </button>
+            {user.role === 'client' ? (
+              <button
+                onClick={() => router.push('/search')}
+                className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 dark:hover:bg-green-800"
+              >
+                Find Artisans
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  const cats = artisanProfile?.categories;
+                  if (cats && cats.length > 0) router.push('/jobs');
+                }}
+                disabled={!artisanProfile?.categories || artisanProfile.categories.length === 0}
+                className={`px-6 py-2 rounded ${
+                  artisanProfile?.categories && artisanProfile.categories.length > 0
+                    ? 'bg-green-600 text-white hover:bg-green-700 dark:hover:bg-green-800'
+                    : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                }`}
+                title={
+                  artisanProfile?.categories && artisanProfile.categories.length > 0
+                    ? 'Browse available jobs'
+                    : 'Complete your profile to find jobs'
+                }
+              >
+                Find Jobs
+              </button>
+            )}
             {user.role === 'artisan' && (
               <button
                 onClick={() => router.push('/dashboard/my-bids')}
