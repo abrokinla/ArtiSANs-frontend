@@ -20,6 +20,15 @@ export default function ConversationPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [latestId, setLatestId] = useState<number>(0);
 
+  const addMessages = (newMsgs: any[]) => {
+    setMessages((prev) => {
+      const existingIds = new Set(prev.map((m: any) => m.id));
+      const deduped = newMsgs.filter((m: any) => !existingIds.has(m.id));
+      if (deduped.length === 0) return prev;
+      return [...prev, ...deduped];
+    });
+  };
+
   useEffect(() => {
     if (!token) {
       router.push('/auth');
@@ -66,7 +75,7 @@ export default function ConversationPage() {
     try {
       const newMsgs = await getMessages(id, token, latestId);
       if (newMsgs.length > 0) {
-        setMessages((prev) => [...prev, ...newMsgs]);
+        addMessages(newMsgs);
         setLatestId(newMsgs[newMsgs.length - 1].id);
       }
     } catch {
@@ -77,7 +86,7 @@ export default function ConversationPage() {
   const handleSend = async (content: string) => {
     if (!token) return;
     const msg = await sendMessage(id, content, token);
-    setMessages((prev) => [...prev, msg]);
+    addMessages([msg]);
     setLatestId(msg.id);
   };
 
