@@ -36,19 +36,25 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#1a1a2e]">
-      {/* Hero Section - Airbnb Inspired */}
-      <section className="relative bg-white dark:bg-[#1a1a2e] py-24 md:py-32">
-        <div className="container mx-auto px-4 text-center max-w-4xl">
-          <h1 className="text-display mb-6 text-text-primary dark:text-text-primary-dark">
+      {/* Hero Section */}
+      <section
+        className="relative bg-cover bg-center bg-no-repeat py-24 md:py-32"
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1600&q=80')",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/60 to-black/50" />
+        <div className="container mx-auto px-4 text-center max-w-4xl relative z-10">
+          <h1 className="text-display mb-6 text-white">
             Find Trusted Local Artisans in Nigeria
           </h1>
-          <p className="text-feature text-text-secondary dark:text-text-secondary-dark mb-10 max-w-2xl mx-auto">
+          <p className="text-feature text-gray-200 mb-10 max-w-2xl mx-auto">
             Connect with verified professionals in your area. Quality work, trusted hands.
           </p>
 
-          {/* Search Bar - Airbnb Style */}
+          {/* Search Bar */}
           <div className="search-bar max-w-2xl mx-auto mb-8">
-            <svg className="w-5 h-5 text-text-secondary dark:text-text-secondary-dark flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -68,7 +74,7 @@ export default function Home() {
             </button>
           </div>
 
-          <p className="text-caption text-text-secondary dark:text-text-secondary-dark">
+          <p className="text-caption text-gray-300">
             Popular: Plumbing, Electrical, Carpentry, Painting, Tiling
           </p>
         </div>
