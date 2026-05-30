@@ -4,50 +4,28 @@ interface RequestOptions extends RequestInit {
   token?: string;
 }
 
-let refreshing: Promise<string> | null = null;
-
 async function apiRequest(endpoint: string, options: RequestOptions = {}) {
   const { token, ...fetchOptions } = options;
-
+  
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...fetchOptions.headers,
   };
-
-  const doFetch = async (t: string | undefined | null) => {
-    if (t) (headers as Record<string, string>)['Authorization'] = `Bearer ${t}`;
-    return fetch(`${API_URL}${endpoint}`, { ...fetchOptions, headers });
-  };
-
-  let response = await doFetch(token);
-
-  if (response.status === 401 && token) {
-    const refreshToken = localStorage.getItem('refresh');
-    if (refreshToken && !refreshing) {
-      refreshing = fetch(`${API_URL}/token/refresh/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh: refreshToken }),
-      }).then(async (r) => {
-        if (!r.ok) throw new Error('Refresh failed');
-        const { access } = await r.json();
-        localStorage.setItem('token', access);
-        return access;
-      }).finally(() => { refreshing = null; });
-    }
-    if (refreshing) {
-      try {
-        const newToken = await refreshing;
-        response = await doFetch(newToken);
-      } catch { /* refresh failed — user must log in again */ }
-    }
+  
+  if (token) {
+    (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
-
+  
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...fetchOptions,
+    headers,
+  });
+  
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'An error occurred' }));
     throw new Error(error.error || `HTTP ${response.status}`);
   }
-
+  
   return response.json();
 }
 

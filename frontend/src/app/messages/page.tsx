@@ -24,7 +24,7 @@ export default function MessagesPage() {
     if (!token) return;
     try {
       const data = await getConversations(token);
-      setConversations(data);
+      setConversations(Array.isArray(data) ? data : data.results || []);
     } catch (err) {
       console.error('Error loading conversations:', err);
     } finally {
