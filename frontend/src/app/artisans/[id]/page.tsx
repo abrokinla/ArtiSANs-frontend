@@ -1,9 +1,9 @@
 'use client';
-// export const runtime = 'edge';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getArtisanProfile } from '@/lib/api';
+import { getArtisanProfilePublic } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ArtisanProfilePage() {
   const params = useParams();
@@ -14,16 +14,13 @@ export default function ArtisanProfilePage() {
   }
   const [artisan, setArtisan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState<string | null>(null);
+  const { user, token } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const t = localStorage.getItem('token');
-    setToken(t);
-    
     async function loadProfile() {
       try {
-        const data = await getArtisanProfile(id as string, t!);
+        const data = await getArtisanProfilePublic(id as string);
         setArtisan(data);
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -31,12 +28,7 @@ export default function ArtisanProfilePage() {
         setLoading(false);
       }
     }
-    
-    if (t) {
-      loadProfile();
-    } else {
-      setLoading(false);
-    }
+    loadProfile();
   }, [id]);
 
   const handleHire = () => {
@@ -44,7 +36,6 @@ export default function ArtisanProfilePage() {
       router.push('/auth');
       return;
     }
-    // Navigate to job posting with artisan pre-selected
     router.push(`/jobs/post?artisan=${id}`);
   };
 
@@ -59,9 +50,9 @@ export default function ArtisanProfilePage() {
             <div className="lg:col-span-2">
               <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 mb-6 dark:border dark:border-gray-700">
                   <div className="flex items-start mb-6">
-                  {artisan.profile_picture_url || artisan.user?.profile?.profile_picture_url ? (
+                  {artisan.profile_picture_url ? (
                     <img
-                      src={artisan.profile_picture_url || artisan.user?.profile?.profile_picture_url}
+                      src={artisan.profile_picture_url}
                       alt="Profile"
                       className="w-24 h-24 rounded-full object-cover mr-6"
                     />
@@ -70,15 +61,15 @@ export default function ArtisanProfilePage() {
                   )}
                   <div className="flex-1">
                     <h1 className="text-3xl font-bold mb-2">
-                      {artisan.user.first_name} {artisan.user.last_name}
+                      {artisan.first_name} {artisan.last_name}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mb-2">
                       {artisan.lga_name ? `${artisan.lga_name}, ${artisan.state_name}` : artisan.location || 'Location not set'}
                     </p>
                     <div className="flex items-center mb-2">
                       <span className="text-yellow-500 text-xl mr-1">★</span>
-                      <span className="font-medium text-lg">{artisan.average_rating.toFixed(1)}</span>
-                      <span className="text-gray-500 dark:text-gray-400 ml-2">({artisan.reviews_count} reviews)</span>
+                      <span className="font-medium text-lg">{artisan.average_rating ? artisan.average_rating.toFixed(1) : '0.0'}</span>
+                      <span className="text-gray-500 dark:text-gray-400 ml-2">({artisan.reviews_count || 0} reviews)</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {artisan.is_verified && (
@@ -103,20 +94,14 @@ export default function ArtisanProfilePage() {
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-3">Categories</h2>
                 <div className="flex flex-wrap gap-2">
-                  {artisan.categories.map((cat: string, idx: number) => (
+                  {artisan.categories && artisan.categories.map((cat: any, idx: number) => (
                     <span key={idx} className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full">
-                      {cat}
+                      {cat.name || cat}
                     </span>
                   ))}
                 </div>
               </div>
 
-              {artisan.availability && (
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-3">Availability</h2>
-                  <p className="text-gray-700 dark:text-gray-300">{artisan.availability}</p>
-                </div>
-              )}
             </div>
 
             {/* Portfolio Section */}
@@ -170,16 +155,11 @@ export default function ArtisanProfilePage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 sticky top-4 dark:border dark:border-gray-700">
-              <div className="mb-4">
-                <p className="text-gray-600 dark:text-gray-400 mb-1">Total Earnings</p>
-                <p className="text-2xl font-bold">₦{parseFloat(artisan.total_earnings).toLocaleString()}</p>
-              </div>
-              
               <button
                 onClick={handleHire}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold mb-3"
               >
-                Hire {artisan.user.first_name}
+                Hire {artisan.first_name}
               </button>
               
               <button className="w-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold">

@@ -77,6 +77,10 @@ export async function getArtisanProfile(id: string, token: string) {
   return apiRequest(`/artisans/${id}/profile/`, { token });
 }
 
+export async function getArtisanProfilePublic(id: string) {
+  return apiRequest(`/artisans/${id}/public/`);
+}
+
 export async function getMyArtisanProfile(token: string) {
   return apiRequest('/artisans/me/', { token });
 }
