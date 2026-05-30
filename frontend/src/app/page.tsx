@@ -75,7 +75,7 @@ export default function Home() {
       </section>
 
       {/* Categories Section */}
-      <section className="section bg-bg-tertiary">
+      <section className="section bg-bg-tertiary dark:bg-[#16213e]">
         <div className="container mx-auto px-4">
           <h2 className="section-title">Popular Services</h2>
           {loading ? (
@@ -143,7 +143,7 @@ export default function Home() {
       </section>
 
       {/* Featured Artisans Section */}
-      <section className="section bg-bg-tertiary">
+      <section className="section bg-bg-tertiary dark:bg-[#16213e]">
         <div className="container mx-auto px-4">
           <h2 className="section-title">Featured Artisans</h2>
           {loading ? (
