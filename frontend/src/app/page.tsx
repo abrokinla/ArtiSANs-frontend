@@ -80,6 +80,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Brand Mission */}
+      <section className="py-16 bg-white dark:bg-[#1a1a2e] border-y border-gray-100 dark:border-gray-800">
+        <div className="container mx-auto px-4 text-center max-w-3xl">
+          <h2 className="text-2xl font-bold mb-3">
+            ArtiSANs
+            <span className="text-gray-500 dark:text-gray-400 text-lg font-normal ml-2">
+              — Artisans Support Access Network
+            </span>
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 italic leading-relaxed">
+            “Connecting skilled artisans to opportunities, customers, and growth.”
+          </p>
+        </div>
+      </section>
+
       {/* Categories Section */}
       <section className="section bg-bg-tertiary dark:bg-[#16213e]">
         <div className="container mx-auto px-4">
