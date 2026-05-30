@@ -14,7 +14,7 @@ async function apiRequest(endpoint: string, options: RequestOptions = {}) {
     ...fetchOptions.headers,
   };
 
-  const doFetch = async (t: string | null) => {
+  const doFetch = async (t: string | undefined | null) => {
     if (t) (headers as Record<string, string>)['Authorization'] = `Bearer ${t}`;
     return fetch(`${API_URL}${endpoint}`, { ...fetchOptions, headers });
   };
