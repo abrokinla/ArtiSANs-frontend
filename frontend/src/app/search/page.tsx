@@ -26,11 +26,11 @@ export default function SearchPage() {
     async function loadData() {
       try {
         const cats = await getCategories();
-        setCategories(cats);
+        setCategories(Array.isArray(cats) ? cats : cats.results || []);
         
         // Load initial artisans
         const results = await searchArtisans({});
-        setArtisans(results);
+        setArtisans(Array.isArray(results) ? results : results.results || []);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -161,17 +161,17 @@ export default function SearchPage() {
                 
                 <div className="flex items-center mb-2">
                   <span className="text-yellow-500 mr-1">★</span>
-                  <span className="font-medium">{artisan.average_rating.toFixed(1)}</span>
-                  <span className="text-gray-500 dark:text-gray-400 ml-1">({artisan.review_count} reviews)</span>
+                  <span className="font-medium">{artisan.average_rating ? artisan.average_rating.toFixed(1) : 'New'}</span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">({artisan.review_count || 0} reviews)</span>
                   {artisan.portfolio_images?.length > 0 && (
                     <span className="text-gray-500 dark:text-gray-400 text-xs ml-2">📷 {artisan.portfolio_images.length} photos</span>
                   )}
                 </div>
                 
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{artisan.bio}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{artisan.bio || ''}</p>
                 
                 <div className="flex flex-wrap gap-1">
-                  {artisan.categories.map((cat: string, idx: number) => (
+                  {(artisan.categories || []).map((cat: string, idx: number) => (
                     <span key={idx} className="bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 text-xs px-2 py-1 rounded">
                       {cat}
                     </span>
