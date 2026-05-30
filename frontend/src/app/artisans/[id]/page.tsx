@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getArtisanProfilePublic } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import HireModal from '@/components/hire/HireModal';
 
 export default function ArtisanProfilePage() {
   const params = useParams();
@@ -14,6 +15,7 @@ export default function ArtisanProfilePage() {
   }
   const [artisan, setArtisan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showHireModal, setShowHireModal] = useState(false);
   const { user, token } = useAuth();
   const router = useRouter();
 
@@ -36,7 +38,12 @@ export default function ArtisanProfilePage() {
       router.push('/auth');
       return;
     }
-    router.push(`/jobs/post?artisan=${id}`);
+    setShowHireModal(true);
+  };
+
+  const handleHireSuccess = (conversationId: number) => {
+    setShowHireModal(false);
+    router.push(`/messages/${conversationId}`);
   };
 
   if (loading) return <div className="text-center py-12">Loading...</div>;
@@ -155,13 +162,21 @@ export default function ArtisanProfilePage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 sticky top-4 dark:border dark:border-gray-700">
-              <button
-                onClick={handleHire}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold mb-3"
-              >
-                Hire {artisan.first_name}
-              </button>
-              
+              {token && user?.role === 'client' ? (
+                <button
+                  onClick={handleHire}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold mb-3"
+                >
+                  Hire {artisan.first_name}
+                </button>
+              ) : (
+                <button
+                  onClick={handleHire}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold mb-3"
+                >
+                  Hire {artisan.first_name}
+                </button>
+              )}
               <button className="w-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-3 rounded-lg text-sm cursor-default">
                 Hire this artisan to start a conversation
               </button>
@@ -169,6 +184,16 @@ export default function ArtisanProfilePage() {
           </div>
         </div>
       </div>
+
+      {showHireModal && token && (
+        <HireModal
+          artisanId={id}
+          artisanName={`${artisan.first_name} ${artisan.last_name}`}
+          token={token}
+          onClose={() => setShowHireModal(false)}
+          onSuccess={handleHireSuccess}
+        />
+      )}
     </div>
   );
 }

@@ -322,3 +322,31 @@ export async function sendMessage(conversationId: string, content: string, token
 export async function getUnreadCount(token: string) {
   return apiRequest('/conversations/unread/', { token });
 }
+
+// Hire
+export async function getHireContext(artisanId: string, token: string) {
+  return apiRequest(`/artisans/${artisanId}/hire_context/`, { token });
+}
+
+export async function assignJob(jobId: string, artisanId: number, amount: number | null, token: string) {
+  return apiRequest(`/jobs/${jobId}/assign/`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ artisan_id: artisanId, amount }),
+  });
+}
+
+export async function directHire(data: {
+  artisan_id: number;
+  title: string;
+  description?: string;
+  budget?: number;
+  category?: number;
+  location?: string;
+}, token: string) {
+  return apiRequest('/jobs/direct_hire/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify(data),
+  });
+}
