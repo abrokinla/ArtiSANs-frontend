@@ -14,15 +14,17 @@ export default function Home() {
     async function loadData() {
       try {
         const cats = await getCategories();
-        setCategories(cats);
+        setCategories(Array.isArray(cats) ? cats : cats.results || []);
 
         // Get some featured artisans
         const artisans = await searchArtisans({ min_rating: 4 });
-        setFeaturedArtisans(artisans.slice(0, 6));
+        const artisanList = Array.isArray(artisans) ? artisans : artisans.results || [];
+        setFeaturedArtisans(artisanList.slice(0, 6));
 
         // Get featured jobs (open/bidding)
         const jobs = await getJobs({ status: 'bidding' });
-        setFeaturedJobs(jobs.results?.slice(0, 6) || jobs.slice(0, 6));
+        const jobList = Array.isArray(jobs) ? jobs : jobs.results || [];
+        setFeaturedJobs(jobList.slice(0, 6));
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -37,16 +39,16 @@ export default function Home() {
       {/* Hero Section - Airbnb Inspired */}
       <section className="relative bg-white dark:bg-[#1a1a2e] py-24 md:py-32">
         <div className="container mx-auto px-4 text-center max-w-4xl">
-          <h1 className="text-display mb-6 text-text-primary">
+          <h1 className="text-display mb-6 text-text-primary dark:text-text-primary-dark">
             Find Trusted Local Artisans in Nigeria
           </h1>
-          <p className="text-feature text-text-secondary mb-10 max-w-2xl mx-auto">
+          <p className="text-feature text-text-secondary dark:text-text-secondary-dark mb-10 max-w-2xl mx-auto">
             Connect with verified professionals in your area. Quality work, trusted hands.
           </p>
 
           {/* Search Bar - Airbnb Style */}
           <div className="search-bar max-w-2xl mx-auto mb-8">
-            <svg className="w-5 h-5 text-text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-text-secondary dark:text-text-secondary-dark flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -66,7 +68,7 @@ export default function Home() {
             </button>
           </div>
 
-          <p className="text-caption text-text-secondary">
+          <p className="text-caption text-text-secondary dark:text-text-secondary-dark">
             Popular: Plumbing, Electrical, Carpentry, Painting, Tiling
           </p>
         </div>
@@ -77,7 +79,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <h2 className="section-title">Popular Services</h2>
           {loading ? (
-            <div className="text-center text-text-secondary">Loading...</div>
+            <div className="text-center text-text-secondary dark:text-text-secondary-dark">Loading...</div>
           ) : (
             <div className="grid-cards">
               {categories.map((cat) => (
@@ -103,7 +105,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <h2 className="section-title">Featured Jobs</h2>
           {loading ? (
-            <div className="text-center text-text-secondary">Loading...</div>
+            <div className="text-center text-text-secondary dark:text-text-secondary-dark">Loading...</div>
           ) : (
             <div className="grid-cards">
               {featuredJobs.map((job) => (
@@ -117,12 +119,12 @@ export default function Home() {
                         </span>
                       </div>
                       <p className="card-subtitle mb-4 line-clamp-2">{job.description}</p>
-                      <div className="flex items-center justify-between text-caption text-text-secondary mb-3">
+                      <div className="flex items-center justify-between text-caption text-text-secondary dark:text-text-secondary-dark mb-3">
                         <span>{job.category_name}</span>
                         <span>{job.lga_name ? `${job.lga_name}, ${job.state_name}` : job.location}</span>
                       </div>
                       {job.budget && (
-                        <div className="font-semibold text-text-primary">
+                        <div className="font-semibold text-text-primary dark:text-text-primary-dark">
                           Budget: ₦{job.budget.toLocaleString()}
                         </div>
                       )}
@@ -145,7 +147,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <h2 className="section-title">Featured Artisans</h2>
           {loading ? (
-            <div className="text-center text-text-secondary">Loading...</div>
+            <div className="text-center text-text-secondary dark:text-text-secondary-dark">Loading...</div>
           ) : (
             <div className="grid-cards">
               {featuredArtisans.map((artisan) => (
@@ -153,18 +155,18 @@ export default function Home() {
                   <div className="card cursor-pointer">
                     <div className="card-body">
                       <div className="flex items-center mb-4">
-                        <div className="w-12 h-12 bg-bg-secondary rounded-full mr-4 flex items-center justify-center text-text-secondary font-semibold">
+                        <div className="w-12 h-12 bg-bg-secondary rounded-full mr-4 flex items-center justify-center text-text-secondary dark:text-text-secondary-dark font-semibold">
                           {artisan.first_name?.[0]}{artisan.last_name?.[0]}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-text-primary">{artisan.first_name} {artisan.last_name}</h3>
-                          <p className="text-sm text-text-secondary">{artisan.lga_name ? `${artisan.lga_name}, ${artisan.state_name}` : artisan.location}</p>
+                          <h3 className="font-semibold text-text-primary dark:text-text-primary-dark">{artisan.first_name} {artisan.last_name}</h3>
+                          <p className="text-sm text-text-secondary dark:text-text-secondary-dark">{artisan.lga_name ? `${artisan.lga_name}, ${artisan.state_name}` : artisan.location}</p>
                         </div>
                       </div>
                       <div className="flex items-center mb-3">
                         <span className="text-rausch mr-1">★</span>
                         <span className="text-sm font-medium">{artisan.average_rating?.toFixed(1) || 'New'}</span>
-                        <span className="text-sm text-text-secondary ml-1">
+                        <span className="text-sm text-text-secondary dark:text-text-secondary-dark ml-1">
                           ({artisan.review_count || 0} reviews)
                         </span>
                       </div>
@@ -190,8 +192,8 @@ export default function Home() {
       {/* CTA Section */}
       <section className="section bg-white dark:bg-[#1a1a2e] border-t border-gray-100 dark:border-gray-800">
         <div className="container mx-auto px-4 text-center max-w-3xl">
-          <h2 className="text-display mb-4 text-text-primary">Ready to get started?</h2>
-          <p className="text-feature text-text-secondary mb-10">
+          <h2 className="text-display mb-4 text-text-primary dark:text-text-primary-dark">Ready to get started?</h2>
+          <p className="text-feature text-text-secondary dark:text-text-secondary-dark mb-10">
             Join thousands of satisfied customers and skilled artisans on ArtiSANs NG
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
