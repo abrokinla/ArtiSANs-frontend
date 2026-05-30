@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
-import { getMyProfile } from '@/lib/api';
+import { getMyProfile, getUnreadCount } from '@/lib/api';
 
 export default function Navbar() {
   const { isLoggedIn, user, logout, token } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [bidsRemaining, setBidsRemaining] = useState<number | null>(null);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -23,6 +24,16 @@ export default function Navbar() {
       return () => { cancelled = true; };
     }
   }, [isLoggedIn, user?.role, token]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !token) return;
+    const fetchUnread = () => {
+      getUnreadCount(token!).then((d) => setUnreadCount(d.unread_count)).catch(() => {});
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn, token]);
 
   const handleLogout = () => {
     logout();
@@ -57,6 +68,16 @@ export default function Navbar() {
             {user?.role === 'client' && (
               <Link href="/jobs/post" className="text-sm font-medium transition-colors hover:text-rausch" style={{ color: 'var(--color-text-secondary)' }}>
                 Post a Job
+              </Link>
+            )}
+            {isLoggedIn && (
+              <Link href="/messages" className="text-sm font-medium transition-colors hover:text-rausch relative" style={{ color: 'var(--color-text-secondary)' }}>
+                Messages
+                {unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-4 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
             )}
           </div>
@@ -159,6 +180,11 @@ export default function Navbar() {
             )}
             {isLoggedIn && (
               <Link href="/dashboard" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Dashboard</Link>
+            )}
+            {isLoggedIn && (
+              <Link href="/messages" className="block px-2 py-2 text-sm rounded relative" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>
+                Messages{unreadCount > 0 && ` (${unreadCount})`}
+              </Link>
             )}
             {user?.role === 'client' && (
               <Link href="/jobs/post" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Post a Job</Link>

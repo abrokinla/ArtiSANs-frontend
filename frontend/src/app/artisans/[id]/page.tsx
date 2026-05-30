@@ -162,8 +162,8 @@ export default function ArtisanProfilePage() {
                 Hire {artisan.first_name}
               </button>
               
-              <button className="w-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold">
-                Send Message
+              <button className="w-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-3 rounded-lg text-sm cursor-default">
+                Hire this artisan to start a conversation
               </button>
             </div>
           </div>

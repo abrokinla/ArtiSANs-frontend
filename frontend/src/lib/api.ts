@@ -296,3 +296,29 @@ export async function confirmJobCompletion(jobId: string, token: string) {
     token,
   });
 }
+
+// Messages
+export async function getConversations(token: string) {
+  return apiRequest('/conversations/', { token });
+}
+
+export async function getConversation(id: string, token: string) {
+  return apiRequest(`/conversations/${id}/`, { token });
+}
+
+export async function getMessages(conversationId: string, token: string, afterId?: number) {
+  const query = afterId ? `?after_id=${afterId}` : '';
+  return apiRequest(`/conversations/${conversationId}/messages/${query}`, { token });
+}
+
+export async function sendMessage(conversationId: string, content: string, token: string) {
+  return apiRequest(`/conversations/${conversationId}/messages/`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function getUnreadCount(token: string) {
+  return apiRequest('/conversations/unread/', { token });
+}
