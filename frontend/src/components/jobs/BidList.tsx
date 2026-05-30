@@ -1,7 +1,10 @@
 'use client';
 
+import Link from 'next/link';
+
 interface Bid {
   id: number;
+  artisan: number;
   artisan_username: string;
   artisan_verified?: boolean;
   artisan_profile_picture?: string;
@@ -32,16 +35,18 @@ export default function BidList({ bids, isClient, jobStatus, onAcceptBid }: BidL
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                {bid.artisan_profile_picture ? (
-                  <img
-                    src={bid.artisan_profile_picture}
-                    alt=""
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex-shrink-0"></div>
-                )}
-                <span className="font-semibold">{bid.artisan_username}</span>
+                <Link href={`/artisans/${bid.artisan}`} className="flex items-center gap-2 hover:opacity-80">
+                  {bid.artisan_profile_picture ? (
+                    <img
+                      src={bid.artisan_profile_picture}
+                      alt=""
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex-shrink-0"></div>
+                  )}
+                  <span className="font-semibold">{bid.artisan_username}</span>
+                </Link>
                 {bid.artisan_verified && (
                   <span className="text-green-600 dark:text-green-400 text-xs font-medium flex items-center gap-0.5">
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">

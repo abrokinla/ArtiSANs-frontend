@@ -52,8 +52,7 @@ export default function JobPublicPage() {
 
     try {
       await placeBid(id, data, token);
-      alert('Bid placed successfully!');
-      loadJob();
+      router.push('/dashboard');
     } catch (err: any) {
       alert(err.message || 'Failed to place bid');
     }
