@@ -86,7 +86,7 @@ export default function JobManagePage() {
       }
       
       if (jobData.status === 'completed' && jobData.artisan) {
-        const reviewsData = await getArtisanReviews(jobData.artisan.toString());
+        const reviewsData = await getArtisanReviews(jobData.artisan.toString(), token!);
         setReviews(reviewsData);
       }
 
