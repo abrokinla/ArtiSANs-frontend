@@ -350,3 +350,56 @@ export async function directHire(data: {
     body: JSON.stringify(data),
   });
 }
+
+// Wallet & Payments
+export async function getWallet(token: string) {
+  return apiRequest('/artisans/wallet/', { token });
+}
+
+export async function getBankDetails(token: string) {
+  return apiRequest('/artisans/bank/', { token });
+}
+
+export async function saveBankDetails(data: {
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  bank_code: string;
+}, token: string) {
+  return apiRequest('/artisans/bank/', {
+    method: 'PUT',
+    token,
+    body: JSON.stringify(data),
+  });
+}
+
+export async function withdrawFromWallet(amount: number, token: string) {
+  return apiRequest('/artisans/withdraw/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ amount }),
+  });
+}
+
+export async function fundEscrow(jobId: string, token: string) {
+  return apiRequest(`/jobs/${jobId}/fund_escrow/`, {
+    method: 'POST',
+    token,
+  });
+}
+
+export async function verifyEscrow(jobId: string, reference: string, token: string) {
+  return apiRequest(`/jobs/${jobId}/verify_escrow/`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reference }),
+  });
+}
+
+export async function purchaseBidsWithWallet(quantity: number, token: string) {
+  return apiRequest('/artisans/purchase_bids/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ quantity, payment_method: 'wallet' }),
+  });
+}

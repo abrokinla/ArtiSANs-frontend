@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getMyProfile, getMyJobs, getMyArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob } from '@/lib/api';
+import { getMyProfile, getMyJobs, getMyArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob, getWallet } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 const BID_PRICING = [
@@ -31,6 +31,9 @@ export default function DashboardPage() {
   const [nin, setNin] = useState('');
   const [verifying, setVerifying] = useState(false);
 
+  // Wallet
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+
   // Purchase Bids
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
@@ -54,6 +57,10 @@ export default function DashboardPage() {
         if (user?.role === 'artisan') {
           const artisanData = await getMyArtisanProfile(token!);
           setArtisanProfile(artisanData);
+          try {
+            const walletData = await getWallet(token!);
+            setWalletBalance(walletData.wallet_balance);
+          } catch {} // wallet fetch is non-critical
         }
       } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -220,12 +227,20 @@ export default function DashboardPage() {
               </button>
             )}
             {user.role === 'artisan' && (
-              <button
-                onClick={() => router.push('/dashboard/my-bids')}
-                className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 dark:hover:bg-purple-800"
-              >
-                My Bids
-              </button>
+              <>
+                <button
+                  onClick={() => router.push('/dashboard/my-bids')}
+                  className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 dark:hover:bg-purple-800"
+                >
+                  My Bids
+                </button>
+                <button
+                  onClick={() => router.push('/wallet')}
+                  className="bg-emerald-600 text-white px-6 py-2 rounded hover:bg-emerald-700 dark:hover:bg-emerald-800"
+                >
+                  Wallet {walletBalance !== null ? `(₦${walletBalance.toLocaleString()})` : ''}
+                </button>
+              </>
             )}
             <button
               onClick={() => router.push('/profile/edit')}

@@ -6,6 +6,7 @@ import {
   getJob, getJobBids, acceptBid,
   startJob, completeJob, confirmJobCompletion,
   createReview, getArtisanReviews,
+  fundEscrow, verifyEscrow,
 } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import BidList from '@/components/jobs/BidList';
@@ -13,24 +14,26 @@ import SubmitReviewForm from '@/components/reviews/SubmitReviewForm';
 import ReviewList from '@/components/reviews/ReviewList';
 import Link from 'next/link';
 
-interface Job {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  budget?: number;
-  final_amount?: number;
-  location: string;
-  state_name?: string;
-  lga_name?: string;
-  priority: string;
-  category_name?: string;
-  client_username: string;
-  artisan_username?: string;
-  artisan?: number;
-  created_at: string;
-  bids_count: number;
-}
+  interface Job {
+    id: number;
+    title: string;
+    description: string;
+    status: string;
+    budget?: number;
+    final_amount?: number;
+    escrow_amount?: number;
+    is_paid?: boolean;
+    location: string;
+    state_name?: string;
+    lga_name?: string;
+    priority: string;
+    category_name?: string;
+    client_username: string;
+    artisan_username?: string;
+    artisan?: number;
+    created_at: string;
+    bids_count: number;
+  }
 
 export default function JobManagePage() {
   const params = useParams();
@@ -47,6 +50,7 @@ export default function JobManagePage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [escrowLoading, setEscrowLoading] = useState(false);
 
   useEffect(() => {
     if (id && token) {
@@ -84,12 +88,33 @@ export default function JobManagePage() {
     }
   };
 
+  const handleFundEscrow = async () => {
+    if (!token) return;
+    setEscrowLoading(true);
+    try {
+      const result = await fundEscrow(id, token);
+      if (result.authorization_url && !result.authorization_url.startsWith('/mock')) {
+        window.location.href = result.authorization_url;
+      } else {
+        const verifyResult = await verifyEscrow(id, result.reference, token);
+        if (verifyResult.is_paid) {
+          alert('Escrow funded successfully! The artisan can now start the job.');
+          loadJob();
+        }
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to fund escrow');
+    } finally {
+      setEscrowLoading(false);
+    }
+  };
+
   const handleAcceptBid = async (bidId: number) => {
     if (!token || !user || user.role !== 'client') return;
     if (!confirm('Accept this bid and assign the job?')) return;
     try {
       await acceptBid(bidId.toString(), token);
-      alert('Bid accepted! Job assigned.');
+      alert('Bid accepted! Fund escrow to proceed.');
       loadJob();
     } catch (err: any) {
       alert(err.message || 'Failed to accept bid');
@@ -120,10 +145,10 @@ export default function JobManagePage() {
 
   const handleConfirmCompletion = async () => {
     if (!token || !user || user.role !== 'client') return;
-    if (!confirm('Confirm job completion and release payment?')) return;
+    if (!confirm('Confirm job completion? Payment will be credited to the artisan\'s wallet.')) return;
     try {
-      await confirmJobCompletion(id, token);
-      alert('Job completed! Payment released to artisan.');
+      const result = await confirmJobCompletion(id, token);
+      alert(`Job completed! ₦${(result.payout || 0).toLocaleString()} credited to artisan wallet. Platform fee: ₦${(result.commission || 0).toLocaleString()}`);
       loadJob();
     } catch (err: any) {
       alert(err.message || 'Failed to confirm completion');
@@ -203,8 +228,22 @@ export default function JobManagePage() {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-4">
-          {isAssignedArtisan && job.status === 'assigned' && (
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {/* Client: fund escrow */}
+          {isClient && job.status === 'assigned' && !job.is_paid && (
+            <button onClick={handleFundEscrow} disabled={escrowLoading}
+              className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50">
+              {escrowLoading ? 'Processing...' : `Fund Escrow (₦${(job.escrow_amount || job.final_amount || 0).toLocaleString()})`}
+            </button>
+          )}
+          {isClient && job.status === 'assigned' && job.is_paid && (
+            <span className="px-4 py-2 bg-green-100 text-green-800 rounded dark:bg-green-900/30 dark:text-green-300 font-medium">
+              ✓ Escrow Funded
+            </span>
+          )}
+
+          {/* Artisan: start / complete */}
+          {isAssignedArtisan && job.status === 'assigned' && job.is_paid && (
             <button onClick={handleStartJob} className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700">
               Start Job
             </button>
@@ -214,15 +253,30 @@ export default function JobManagePage() {
               Mark as Complete
             </button>
           )}
+
+          {/* Client: confirm completion */}
           {isClient && job.status === 'completed' && (
             <button onClick={handleConfirmCompletion} className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded hover:bg-green-700">
               Confirm & Release Payment
             </button>
           )}
+
           <Link href={`/jobs/${id}`} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 inline-block text-center">
             Public View →
           </Link>
         </div>
+
+        {/* Escrow status info */}
+        {job.is_paid && (
+          <div className="text-sm text-green-600 dark:text-green-400 mb-4">
+            ✓ Escrow of ₦{(job.escrow_amount || job.final_amount || 0).toLocaleString()} has been funded.
+          </div>
+        )}
+        {job.status === 'assigned' && !job.is_paid && isAssignedArtisan && (
+          <div className="text-sm text-amber-600 dark:text-amber-400 mb-4">
+            ⏳ Awaiting escrow funding from the client before you can start.
+          </div>
+        )}
       </div>
 
       {job.status === 'bidding' && (
@@ -237,7 +291,7 @@ export default function JobManagePage() {
         </div>
       )}
 
-      {job.status === 'completed' && (
+      {['completed', 'completed_confirmed'].includes(job.status) && (
         <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Reviews</h2>
           {isClient && reviews.length === 0 && (
