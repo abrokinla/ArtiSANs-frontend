@@ -438,3 +438,35 @@ export async function raiseDispute(jobId: string, reason: string, description: s
 export async function getDisputeDetail(jobId: string, token: string) {
   return apiRequest(`/jobs/${jobId}/dispute_detail/`, { token });
 }
+
+// Admin
+export async function getAdminDashboard(token: string) {
+  return apiRequest('/profiles/admin_dashboard/', { token });
+}
+
+export async function getAdminTransactions(token: string, params?: { type?: string; status?: string; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params?.type) query.set('type', params.type);
+  if (params?.status) query.set('status', params.status);
+  if (params?.limit) query.set('limit', params.limit.toString());
+  return apiRequest(`/profiles/admin_transactions/?${query.toString()}`, { token });
+}
+
+export async function getAdminUsers(token: string, params?: { role?: string; search?: string }) {
+  const query = new URLSearchParams();
+  if (params?.role) query.set('role', params.role);
+  if (params?.search) query.set('search', params.search);
+  return apiRequest(`/profiles/admin_users/?${query.toString()}`, { token });
+}
+
+export async function getAdminJobs(token: string, params?: { status?: string }) {
+  const query = new URLSearchParams();
+  if (params?.status) query.set('status', params.status);
+  return apiRequest(`/profiles/admin_jobs/?${query.toString()}`, { token });
+}
+
+export async function getAdminDisputes(token: string, params?: { status?: string }) {
+  const query = new URLSearchParams();
+  if (params?.status) query.set('status', params.status);
+  return apiRequest(`/profiles/admin_disputes/?${query.toString()}`, { token });
+}

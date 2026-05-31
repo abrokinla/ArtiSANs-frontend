@@ -85,6 +85,11 @@ export default function Navbar() {
                 Wallet
               </Link>
             )}
+            {user?.is_staff && (
+              <Link href="/admin" className="text-sm font-medium transition-colors hover:text-rausch" style={{ color: 'var(--color-text-secondary)' }}>
+                Admin
+              </Link>
+            )}
           </div>
 
           {/* Right Side */}
@@ -193,6 +198,9 @@ export default function Navbar() {
             )}
             {isLoggedIn && (
               <Link href="/wallet" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Wallet</Link>
+            )}
+            {user?.is_staff && (
+              <Link href="/admin" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Admin</Link>
             )}
             {user?.role === 'client' && (
               <Link href="/jobs/post" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Post a Job</Link>

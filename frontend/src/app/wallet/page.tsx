@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit } from '@/lib/api';
+import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit, verifyDeposit } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
@@ -28,12 +28,39 @@ export default function WalletPage() {
   const [depositAmount, setDepositAmount] = useState('');
   const [depositing, setDepositing] = useState(false);
   const [depositMsg, setDepositMsg] = useState('');
+  const [verifyingRef, setVerifyingRef] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authInitialized) return;
     if (!token) { router.push('/auth'); return; }
     loadWallet();
   }, [authInitialized, token, user]);
+
+  // Handle Paystack redirect back to wallet page after payment
+  useEffect(() => {
+    if (!token || !authInitialized) return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('trxref') || params.get('reference');
+    if (ref && !verifyingRef) {
+      setVerifyingRef(ref);
+      setDepositing(true);
+      setDepositMsg('Verifying payment...');
+      verifyDeposit(ref, token)
+        .then((result) => {
+          setDepositMsg(result.message || 'Payment verified successfully!');
+          loadWallet();
+          // Clean URL params
+          window.history.replaceState({}, '', '/wallet');
+        })
+        .catch((err: any) => {
+          setDepositMsg(err.message || 'Payment verification failed. Contact support if your money was deducted.');
+        })
+        .finally(() => {
+          setDepositing(false);
+          setVerifyingRef(null);
+        });
+    }
+  }, [token, authInitialized]);
 
   const loadWallet = async () => {
     if (!token) return;
@@ -84,9 +111,15 @@ export default function WalletPage() {
     setDepositMsg('');
     try {
       const result = await deposit(amount, token);
-      setDepositMsg(result.message || `₦${amount.toLocaleString()} deposited successfully!`);
-      setDepositAmount('');
-      loadWallet();
+      if (result.authorization_url && !result.authorization_url.startsWith('/mock')) {
+        // Live mode — redirect to Paystack checkout
+        window.location.href = result.authorization_url;
+      } else {
+        // Mock mode — already credited
+        setDepositMsg(result.message || `₦${amount.toLocaleString()} deposited successfully!`);
+        setDepositAmount('');
+        loadWallet();
+      }
     } catch (err: any) {
       setDepositMsg(err.message || 'Deposit failed');
     } finally {
