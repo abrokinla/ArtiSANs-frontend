@@ -372,6 +372,14 @@ export default function DashboardPage() {
                           {isLoading ? 'Completing...' : 'Mark Complete'}
                         </button>
                       )}
+                      {(isClient || isAssignedArtisan) && ['in_progress', 'awaiting_confirmation'].includes(job.status) && (
+                        <Link
+                          href={`/jobs/${job.id}/manage`}
+                          className="px-4 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700 inline-block"
+                        >
+                          Raise Dispute
+                        </Link>
+                      )}
                       {isClient && (
                         <Link
                           href={`/jobs/${job.id}/manage`}

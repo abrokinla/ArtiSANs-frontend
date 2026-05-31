@@ -426,3 +426,15 @@ export async function cancelJob(jobId: string, token: string) {
     token,
   });
 }
+
+export async function raiseDispute(jobId: string, reason: string, description: string, token: string) {
+  return apiRequest(`/jobs/${jobId}/dispute/`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reason, description }),
+  });
+}
+
+export async function getDisputeDetail(jobId: string, token: string) {
+  return apiRequest(`/jobs/${jobId}/dispute_detail/`, { token });
+}

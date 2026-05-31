@@ -7,6 +7,7 @@ import {
   startJob, completeJob, confirmJobCompletion,
   createReview, getArtisanReviews,
   fundEscrow, verifyEscrow, cancelJob,
+  raiseDispute, getDisputeDetail,
 } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import BidList from '@/components/jobs/BidList';
@@ -52,6 +53,13 @@ export default function JobManagePage() {
   const [error, setError] = useState('');
   const [escrowLoading, setEscrowLoading] = useState(false);
 
+  // Dispute
+  const [dispute, setDispute] = useState<any>(null);
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReason, setDisputeReason] = useState('');
+  const [disputeDesc, setDisputeDesc] = useState('');
+  const [disputeLoading, setDisputeLoading] = useState(false);
+
   useEffect(() => {
     if (id && token) {
       loadJob();
@@ -80,6 +88,14 @@ export default function JobManagePage() {
       if (jobData.status === 'completed' && jobData.artisan) {
         const reviewsData = await getArtisanReviews(jobData.artisan.toString());
         setReviews(reviewsData);
+      }
+
+      // Load dispute info if disputed
+      if (jobData.status === 'disputed') {
+        try {
+          const disputeData = await getDisputeDetail(id, token!);
+          setDispute(disputeData.dispute);
+        } catch {}
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load job');
@@ -118,6 +134,23 @@ export default function JobManagePage() {
       loadJob();
     } catch (err: any) {
       alert(err.message || 'Failed to cancel job');
+    }
+  };
+
+  const handleRaiseDispute = async () => {
+    if (!token || !disputeReason || !disputeDesc) return;
+    setDisputeLoading(true);
+    try {
+      await raiseDispute(id, disputeReason, disputeDesc, token);
+      alert('Dispute raised. Admin will review.');
+      setShowDisputeModal(false);
+      setDisputeReason('');
+      setDisputeDesc('');
+      loadJob();
+    } catch (err: any) {
+      alert(err.message || 'Failed to raise dispute');
+    } finally {
+      setDisputeLoading(false);
     }
   };
 
@@ -286,6 +319,14 @@ export default function JobManagePage() {
             </button>
           )}
 
+          {/* Raise Dispute (available during in_progress or awaiting_confirmation) */}
+          {['in_progress', 'awaiting_confirmation'].includes(job.status) && (
+            <button onClick={() => setShowDisputeModal(true)}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+              Raise Dispute
+            </button>
+          )}
+
           <Link href={`/jobs/${id}`} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 inline-block text-center">
             Public View →
           </Link>
@@ -305,6 +346,37 @@ export default function JobManagePage() {
         {job.status === 'awaiting_confirmation' && isAssignedArtisan && (
           <div className="text-sm text-amber-600 dark:text-amber-400 mb-4">
             ⏳ You marked this job as complete. Awaiting client confirmation to release payment.
+          </div>
+        )}
+
+        {/* Dispute banner */}
+        {job.status === 'disputed' && dispute && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <span className="text-red-600 dark:text-red-400 text-xl">⚠️</span>
+              <div className="flex-1">
+                <h3 className="font-semibold text-red-800 dark:text-red-300">Dispute Raised</h3>
+                <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                  Raised by <strong>{dispute.raised_by_username}</strong> ({dispute.raised_by_role})
+                </p>
+                <p className="text-sm text-red-700 dark:text-red-400">
+                  Reason: {dispute.reason_display}
+                </p>
+                {dispute.description && (
+                  <p className="text-sm text-red-600 dark:text-red-500 mt-1 italic">
+                    "{dispute.description}"
+                  </p>
+                )}
+                <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                  Status: <span className="font-medium">{dispute.status_display}</span>
+                </p>
+                {dispute.status !== 'pending' && dispute.status !== 'under_review' && (
+                  <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                    Resolution: {dispute.resolution_notes || dispute.status_display}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -328,6 +400,62 @@ export default function JobManagePage() {
             <SubmitReviewForm onSubmit={handleSubmitReview} />
           )}
           <ReviewList reviews={reviews} />
+        </div>
+      )}
+
+      {/* Dispute Modal */}
+      {showDisputeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowDisputeModal(false)}>
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b dark:border-gray-700">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Raise a Dispute</h2>
+              <button onClick={() => setShowDisputeModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">&times;</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Raising a dispute will notify the platform admin. The job will be paused until resolved.
+              </p>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Reason</label>
+                <select
+                  value={disputeReason}
+                  onChange={(e) => setDisputeReason(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600"
+                  required
+                >
+                  <option value="">Select a reason</option>
+                  <option value="client_not_confirming">Client not confirming completion</option>
+                  <option value="payment_dispute">Payment dispute</option>
+                  <option value="poor_workmanship">Poor workmanship / incomplete work</option>
+                  <option value="client_unresponsive">Client not responding</option>
+                  <option value="artisan_no_show">Artisan did not show up</option>
+                  <option value="quality_not_as_expected">Quality not as expected</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Description</label>
+                <textarea
+                  value={disputeDesc}
+                  onChange={(e) => setDisputeDesc(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 resize-none"
+                  placeholder="Describe the issue in detail..."
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-5 border-t dark:border-gray-700">
+              <button onClick={() => setShowDisputeModal(false)}
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                Cancel
+              </button>
+              <button onClick={handleRaiseDispute} disabled={disputeLoading || !disputeReason || !disputeDesc}
+                className="px-5 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                {disputeLoading ? 'Submitting...' : 'Submit Dispute'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
