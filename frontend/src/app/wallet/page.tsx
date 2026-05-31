@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit, verifyDeposit } from '@/lib/api';
+import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
@@ -84,13 +84,9 @@ export default function WalletPage() {
     setDepositMsg('');
     try {
       const result = await deposit(amount, token);
-      // In mock mode, auto-verify
-      if (result.reference) {
-        await verifyDeposit(result.reference, token);
-        setDepositMsg(`₦${amount.toLocaleString()} deposited successfully!`);
-        setDepositAmount('');
-        loadWallet();
-      }
+      setDepositMsg(result.message || `₦${amount.toLocaleString()} deposited successfully!`);
+      setDepositAmount('');
+      loadWallet();
     } catch (err: any) {
       setDepositMsg(err.message || 'Deposit failed');
     } finally {
@@ -137,8 +133,7 @@ export default function WalletPage() {
             ₦{wallet?.wallet_balance?.toLocaleString() || '0.00'}
           </p>
           <div className="flex gap-6 mt-4 text-sm text-gray-500 dark:text-gray-400">
-            <span>Total Earned: ₦{wallet?.total_earnings?.toLocaleString() || '0.00'}</span>
-            <span>Total Withdrawn: ₦{wallet?.total_withdrawn?.toLocaleString() || '0.00'}</span>
+            <span>Total Deposited: ₦{wallet?.total_deposited?.toLocaleString() || '0.00'}</span>
           </div>
         </div>
 
@@ -297,11 +292,11 @@ export default function WalletPage() {
                     </p>
                   </div>
                   <span className={`font-semibold ${
-                    ['wallet_credit', 'escrow_release'].includes(tx.type)
+                    ['wallet_credit'].includes(tx.type)
                       ? 'text-green-600 dark:text-green-400'
                       : 'text-red-600 dark:text-red-400'
                   }`}>
-                    {['wallet_credit', 'escrow_release'].includes(tx.type) ? '+' : '-'}₦{tx.amount?.toLocaleString()}
+                    {['wallet_credit'].includes(tx.type) ? '+' : '-'}₦{tx.amount?.toLocaleString()}
                   </span>
                 </div>
               ))}

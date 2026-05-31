@@ -158,6 +158,7 @@ export default function DashboardPage() {
 
   const biddingJobs = jobs.filter((j: any) => j.status === 'bidding');
   const activeJobs = jobs.filter((j: any) => ['assigned', 'in_progress'].includes(j.status));
+  const awaitingJobs = jobs.filter((j: any) => j.status === 'awaiting_confirmation');
   const completedJobs = jobs.filter((j: any) => j.status === 'completed');
 
   return (
@@ -165,7 +166,7 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
             <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Jobs</h3>
             <p className="text-3xl font-bold">{jobs.length}</p>
@@ -179,6 +180,10 @@ export default function DashboardPage() {
           <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
             <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">In Progress</h3>
             <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{activeJobs.length}</p>
+          </div>
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
+            <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Awaiting Confirmation</h3>
+            <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{awaitingJobs.length}</p>
           </div>
           <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
             <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Completed</h3>
@@ -375,6 +380,56 @@ export default function DashboardPage() {
                           View Progress
                         </Link>
                       )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Awaiting Confirmation */}
+        <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">
+            <span className="inline-block w-3 h-3 rounded-full bg-amber-400 mr-2" />
+            Awaiting Confirmation ({awaitingJobs.length})
+          </h2>
+          {awaitingJobs.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400">No jobs awaiting confirmation.</p>
+          ) : (
+            <div className="space-y-4">
+              {awaitingJobs.map((job: any) => {
+                const isClient = user.role === 'client' && job.client_username === user.username;
+                return (
+                  <div key={job.id} className="border rounded-lg p-4 dark:border-gray-600">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <Link href={`/jobs/${job.id}/manage`} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                          {job.title}
+                        </Link>
+                        {job.final_amount && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Final: <span className="font-bold text-green-600 dark:text-green-400">₦{job.final_amount.toLocaleString()}</span>
+                          </p>
+                        )}
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                          {isClient ? 'Artisan marked this job as complete. Confirm to release payment.' : 'Awaiting client confirmation.'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {isClient ? (
+                          <Link
+                            href={`/jobs/${job.id}/manage`}
+                            className="px-4 py-2 bg-amber-600 text-white text-sm rounded hover:bg-amber-700"
+                          >
+                            Confirm & Release Payment →
+                          </Link>
+                        ) : (
+                          <span className="px-3 py-1.5 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-sm rounded-full">
+                            Awaiting Confirmation
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

@@ -353,7 +353,7 @@ export async function directHire(data: {
 
 // Wallet & Payments
 export async function getWallet(token: string) {
-  return apiRequest('/artisans/wallet/', { token });
+  return apiRequest('/profiles/wallet/', { token });
 }
 
 export async function getBankDetails(token: string) {
@@ -405,7 +405,7 @@ export async function purchaseBidsWithWallet(quantity: number, token: string) {
 }
 
 export async function deposit(amount: number, token: string) {
-  return apiRequest('/profile/deposit/', {
+  return apiRequest('/profiles/deposit/', {
     method: 'POST',
     token,
     body: JSON.stringify({ amount }),
@@ -413,7 +413,7 @@ export async function deposit(amount: number, token: string) {
 }
 
 export async function verifyDeposit(reference: string, token: string) {
-  return apiRequest('/profile/verify_deposit/', {
+  return apiRequest('/profiles/verify_deposit/', {
     method: 'POST',
     token,
     body: JSON.stringify({ reference }),

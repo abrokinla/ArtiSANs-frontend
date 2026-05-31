@@ -202,6 +202,7 @@ export default function JobManagePage() {
             <div className="flex gap-2 text-sm text-gray-600 dark:text-gray-400">
               <span className={`px-2 py-1 rounded ${
                 job.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                job.status === 'awaiting_confirmation' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' :
                 job.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
                 job.status === 'assigned' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
                 job.status === 'bidding' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
@@ -279,8 +280,8 @@ export default function JobManagePage() {
           )}
 
           {/* Client: confirm completion */}
-          {isClient && job.status === 'completed' && (
-            <button onClick={handleConfirmCompletion} className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded hover:bg-green-700">
+          {isClient && job.status === 'awaiting_confirmation' && (
+            <button onClick={handleConfirmCompletion} className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700">
               Confirm & Release Payment
             </button>
           )}
@@ -301,6 +302,11 @@ export default function JobManagePage() {
             ⏳ Awaiting escrow funding from the client before you can start.
           </div>
         )}
+        {job.status === 'awaiting_confirmation' && isAssignedArtisan && (
+          <div className="text-sm text-amber-600 dark:text-amber-400 mb-4">
+            ⏳ You marked this job as complete. Awaiting client confirmation to release payment.
+          </div>
+        )}
       </div>
 
       {job.status === 'bidding' && (
@@ -315,7 +321,7 @@ export default function JobManagePage() {
         </div>
       )}
 
-      {['completed', 'completed_confirmed'].includes(job.status) && (
+      {['completed'].includes(job.status) && (
         <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-md dark:shadow-gray-900/60 p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Reviews</h2>
           {isClient && reviews.length === 0 && (
