@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { createJob, uploadJobImage, getCategories } from '@/lib/api';
+import { createJob, uploadJobImage, getCategories, getMyProfile } from '@/lib/api';
 import LocationSelect from '@/components/LocationSelect';
 import type { LocationValue } from '@/components/LocationSelect';
 import { groupCategories } from '@/components/CategorySelect';
@@ -36,6 +36,7 @@ export default function PostJobPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [locationValue, setLocationValue] = useState<LocationValue>({
     state_id: null,
     lga_id: null,
@@ -66,6 +67,19 @@ export default function PostJobPage() {
       }
     };
     fetchCategories();
+  }, []);
+
+  // Fetch wallet balance
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    getMyProfile(token)
+      .then((profile: any) => {
+        if (profile.wallet_balance !== undefined) {
+          setWalletBalance(profile.wallet_balance);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Show access denied message for artisans
@@ -153,12 +167,25 @@ export default function PostJobPage() {
       return;
     }
 
+    const budget = parseFloat(formData.budget) || 0;
+
+    // Check wallet balance before submitting
+    if (walletBalance !== null && budget > walletBalance) {
+      const shortfall = budget - walletBalance;
+      setError(
+        `Insufficient wallet balance. You need ₦${budget.toLocaleString()} but have ₦${walletBalance.toLocaleString()}. ` +
+        `Please deposit at least ₦${shortfall.toLocaleString()} to continue.`
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
       await createJob(
         {
           ...formData,
           category: formData.category_id,
-          budget: parseFloat(formData.budget) || null,
+          budget: budget || null,
           images: images.map(img => img.url),
           state: locationValue.state_id,
           lga: locationValue.lga_id,
@@ -207,7 +234,15 @@ export default function PostJobPage() {
         <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-gray-900/60 p-6">
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 border border-red-200">
-              {error}
+              <p className="mb-2">{error}</p>
+              {error.includes('wallet') && (
+                <a
+                  href="/wallet"
+                  className="inline-block bg-[#ff385c] text-white px-4 py-1.5 rounded-lg text-sm hover:bg-[#e31c5f] transition-colors"
+                >
+                  Fund Wallet
+                </a>
+              )}
             </div>
           )}
 
@@ -267,14 +302,29 @@ export default function PostJobPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5 text-[#222222] dark:text-gray-200">Budget (optional)</label>
-              <input
-                type="number"
-                value={formData.budget}
-                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
-                placeholder="e.g., 5000"
-              />
+              <label className="block text-sm font-medium mb-1.5 text-[#222222] dark:text-gray-200">
+                Budget <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  value={formData.budget}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff385c] focus:border-transparent transition-shadow dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
+                  placeholder="e.g., 5000"
+                />
+                {walletBalance !== null && (
+                  <div className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    Wallet: ₦{walletBalance.toLocaleString()}
+                  </div>
+                )}
+              </div>
+              {walletBalance !== null && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  This amount will be deducted from your wallet when the job is created.{' '}
+                  <a href="/wallet" className="text-[#ff385c] hover:underline">Fund wallet</a>
+                </p>
+              )}
             </div>
 
             <div>

@@ -227,21 +227,19 @@ export default function DashboardPage() {
               </button>
             )}
             {user.role === 'artisan' && (
-              <>
-                <button
-                  onClick={() => router.push('/dashboard/my-bids')}
-                  className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 dark:hover:bg-purple-800"
-                >
-                  My Bids
-                </button>
-                <button
-                  onClick={() => router.push('/wallet')}
-                  className="bg-emerald-600 text-white px-6 py-2 rounded hover:bg-emerald-700 dark:hover:bg-emerald-800"
-                >
-                  Wallet {walletBalance !== null ? `(₦${walletBalance.toLocaleString()})` : ''}
-                </button>
-              </>
+              <button
+                onClick={() => router.push('/dashboard/my-bids')}
+                className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 dark:hover:bg-purple-800"
+              >
+                My Bids
+              </button>
             )}
+            <button
+              onClick={() => router.push('/wallet')}
+              className="bg-emerald-600 text-white px-6 py-2 rounded hover:bg-emerald-700 dark:hover:bg-emerald-800"
+            >
+              Wallet {walletBalance !== null ? `(₦${walletBalance.toLocaleString()})` : ''}
+            </button>
             <button
               onClick={() => router.push('/profile/edit')}
               className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 dark:hover:bg-gray-800"

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet } from '@/lib/api';
+import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit, verifyDeposit } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
@@ -24,27 +24,36 @@ export default function WalletPage() {
   const [bankForm, setBankForm] = useState({ bank_name: '', account_number: '', account_name: '', bank_code: '' });
   const [savingBank, setSavingBank] = useState(false);
 
+  // Deposit
+  const [depositAmount, setDepositAmount] = useState('');
+  const [depositing, setDepositing] = useState(false);
+  const [depositMsg, setDepositMsg] = useState('');
+
   useEffect(() => {
     if (!authInitialized) return;
-    if (!token || user?.role !== 'artisan') { router.push('/auth'); return; }
+    if (!token) { router.push('/auth'); return; }
     loadWallet();
   }, [authInitialized, token, user]);
 
   const loadWallet = async () => {
     if (!token) return;
     try {
-      const [walletData, bankData] = await Promise.all([
-        getWallet(token),
-        getBankDetails(token),
-      ]);
+      const walletData = await getWallet(token);
       setWallet(walletData);
-      setBank(bankData);
-      setBankForm({
-        bank_name: bankData.bank_name || '',
-        account_number: '',
-        account_name: bankData.account_name || '',
-        bank_code: bankData.bank_code || '',
-      });
+      if (user?.role === 'artisan') {
+        try {
+          const bankData = await getBankDetails(token);
+          setBank(bankData);
+          setBankForm({
+            bank_name: bankData.bank_name || '',
+            account_number: '',
+            account_name: bankData.account_name || '',
+            bank_code: bankData.bank_code || '',
+          });
+        } catch {
+          // Bank details not available for non-artisans
+        }
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -63,6 +72,29 @@ export default function WalletPage() {
       setError(err.message);
     } finally {
       setSavingBank(false);
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!token || !depositAmount) return;
+    const amount = parseFloat(depositAmount);
+    if (isNaN(amount) || amount <= 0) return;
+
+    setDepositing(true);
+    setDepositMsg('');
+    try {
+      const result = await deposit(amount, token);
+      // In mock mode, auto-verify
+      if (result.reference) {
+        await verifyDeposit(result.reference, token);
+        setDepositMsg(`₦${amount.toLocaleString()} deposited successfully!`);
+        setDepositAmount('');
+        loadWallet();
+      }
+    } catch (err: any) {
+      setDepositMsg(err.message || 'Deposit failed');
+    } finally {
+      setDepositing(false);
     }
   };
 
@@ -110,6 +142,36 @@ export default function WalletPage() {
           </div>
         </div>
 
+        {/* Deposit */}
+        <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-sm dark:shadow-gray-900/60 dark:border dark:border-gray-700 p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Fund Wallet</h2>
+          <div className="flex gap-3 items-end">
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Amount (₦)</label>
+              <input
+                type="number"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full px-3 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
+              />
+            </div>
+            <button
+              onClick={handleDeposit}
+              disabled={depositing || !depositAmount}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            >
+              {depositing ? 'Processing...' : 'Deposit'}
+            </button>
+          </div>
+          {depositMsg && (
+            <p className={`mt-2 text-sm ${depositMsg.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+              {depositMsg}
+            </p>
+          )}
+        </div>
+
+        {user?.role === 'artisan' && (<>
         {/* Withdraw */}
         <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-sm dark:shadow-gray-900/60 dark:border dark:border-gray-700 p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Withdraw to Bank</h2>
@@ -217,6 +279,7 @@ export default function WalletPage() {
             </div>
           )}
         </div>
+        </>)}
 
         {/* Transaction History */}
         <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-sm dark:shadow-gray-900/60 dark:border dark:border-gray-700 p-6">

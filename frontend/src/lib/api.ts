@@ -403,3 +403,26 @@ export async function purchaseBidsWithWallet(quantity: number, token: string) {
     body: JSON.stringify({ quantity, payment_method: 'wallet' }),
   });
 }
+
+export async function deposit(amount: number, token: string) {
+  return apiRequest('/profile/deposit/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ amount }),
+  });
+}
+
+export async function verifyDeposit(reference: string, token: string) {
+  return apiRequest('/profile/verify_deposit/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reference }),
+  });
+}
+
+export async function cancelJob(jobId: string, token: string) {
+  return apiRequest(`/jobs/${jobId}/cancel_job/`, {
+    method: 'POST',
+    token,
+  });
+}

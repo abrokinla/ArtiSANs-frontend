@@ -80,6 +80,11 @@ export default function Navbar() {
                 )}
               </Link>
             )}
+            {isLoggedIn && (
+              <Link href="/wallet" className="text-sm font-medium transition-colors hover:text-rausch" style={{ color: 'var(--color-text-secondary)' }}>
+                Wallet
+              </Link>
+            )}
           </div>
 
           {/* Right Side */}
@@ -185,6 +190,9 @@ export default function Navbar() {
               <Link href="/messages" className="block px-2 py-2 text-sm rounded relative" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>
                 Messages{unreadCount > 0 && ` (${unreadCount})`}
               </Link>
+            )}
+            {isLoggedIn && (
+              <Link href="/wallet" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Wallet</Link>
             )}
             {user?.role === 'client' && (
               <Link href="/jobs/post" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Post a Job</Link>

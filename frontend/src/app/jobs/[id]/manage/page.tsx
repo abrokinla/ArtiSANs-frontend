@@ -6,7 +6,7 @@ import {
   getJob, getJobBids, acceptBid,
   startJob, completeJob, confirmJobCompletion,
   createReview, getArtisanReviews,
-  fundEscrow, verifyEscrow,
+  fundEscrow, verifyEscrow, cancelJob,
 } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import BidList from '@/components/jobs/BidList';
@@ -109,12 +109,28 @@ export default function JobManagePage() {
     }
   };
 
+  const handleCancelJob = async () => {
+    if (!token || !user || user.role !== 'client') return;
+    if (!confirm('Cancel this job? A 10% cancellation fee will be deducted, and the remaining funds refunded to your wallet.')) return;
+    try {
+      await cancelJob(id, token);
+      alert('Job cancelled. Refund processed.');
+      loadJob();
+    } catch (err: any) {
+      alert(err.message || 'Failed to cancel job');
+    }
+  };
+
   const handleAcceptBid = async (bidId: number) => {
     if (!token || !user || user.role !== 'client') return;
     if (!confirm('Accept this bid and assign the job?')) return;
     try {
-      await acceptBid(bidId.toString(), token);
-      alert('Bid accepted! Fund escrow to proceed.');
+      const result = await acceptBid(bidId.toString(), token);
+      if (result.message?.includes('Escrow funded')) {
+        alert('Bid accepted! Escrow is already funded.');
+      } else {
+        alert('Bid accepted! Fund escrow to proceed.');
+      }
       loadJob();
     } catch (err: any) {
       alert(err.message || 'Failed to accept bid');
@@ -240,6 +256,14 @@ export default function JobManagePage() {
             <span className="px-4 py-2 bg-green-100 text-green-800 rounded dark:bg-green-900/30 dark:text-green-300 font-medium">
               ✓ Escrow Funded
             </span>
+          )}
+
+          {/* Client: cancel job (unassigned only) */}
+          {isClient && ['pending', 'bidding'].includes(job.status) && (
+            <button onClick={handleCancelJob}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+              Cancel Job
+            </button>
           )}
 
           {/* Artisan: start / complete */}
