@@ -36,6 +36,7 @@ export async function register(userData: {
   password: string;
   role: 'client' | 'artisan';
   phone_number: string;
+  terms_accepted?: boolean;
 }) {
   return apiRequest('/auth/register/', {
     method: 'POST',

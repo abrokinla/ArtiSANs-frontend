@@ -91,7 +91,15 @@ export default function PlaceBidForm({ jobId, token, bidsRemaining = 0, onSubmit
 
       {/* Boost Your Bid Section */}
       <div className="mb-4 p-3 bg-white dark:bg-[#1a1a2e] border border-amber-200 dark:border-amber-800 rounded-lg">
-        <h4 className="font-semibold text-sm mb-2 text-amber-800 dark:text-amber-300">🚀 Boost Your Bid</h4>
+        <h4 className="font-semibold text-sm mb-2 text-amber-800 dark:text-amber-300">
+          🚀 Boost Your Bid
+          <span className="relative group ml-1">
+            <span className="text-xs text-gray-400 cursor-help">ⓘ</span>
+            <div className="absolute bottom-full left-0 mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+              Using more bids increases your bid's visibility. Higher weight = your bid appears higher in the client's list.
+            </div>
+          </span>
+        </h4>
         <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
           Increase your bid weight to stand out. Higher weight costs more bids but gets more visibility.
         </p>

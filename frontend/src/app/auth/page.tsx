@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { register, login } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -14,6 +15,7 @@ export default function AuthPage() {
     role: 'client' as 'client' | 'artisan',
     phone_number: '',
   });
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -33,7 +35,12 @@ export default function AuthPage() {
         authLogin(data.access, data.refresh, data.user);
         router.push('/dashboard');
       } else {
-        const data = await register(formData);
+        if (!termsAccepted) {
+          setError('You must accept the Terms and Conditions to register.');
+          setLoading(false);
+          return;
+        }
+        const data = await register({ ...formData, terms_accepted: true });
         authLogin(data.access, data.refresh, data.user);
         router.push('/dashboard');
       }
@@ -130,6 +137,22 @@ export default function AuthPage() {
                     <option value="client">Client (looking for artisans)</option>
                     <option value="artisan">Artisan (offering services)</option>
                   </select>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400">
+                    I accept the{' '}
+                    <Link href="/terms" target="_blank" className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800">
+                      Terms and Conditions
+                    </Link>
+                  </label>
                 </div>
               </>
             )}

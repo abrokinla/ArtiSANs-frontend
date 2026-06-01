@@ -660,6 +660,15 @@ export default function EditProfilePage() {
             </section>
           )}
 
+          {/* Profile Boosting Tip */}
+          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <p className="text-sm text-purple-800 dark:text-purple-200">
+              💡 <strong>Tip:</strong> Complete your profile with a bio, location, portfolio images, and
+              up-to-date contact details. Artisans with complete profiles are recommended to job posts that
+              match their expertise.
+            </p>
+          </div>
+
           {/* Submit Button */}
           <div className="flex justify-end">
             <button

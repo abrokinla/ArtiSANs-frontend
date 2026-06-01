@@ -58,6 +58,13 @@ export default function MyBidsPage() {
 
       <h1 className="text-2xl font-bold mb-6">My Bids</h1>
 
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+        <p className="text-sm text-blue-800 dark:text-blue-200">
+          💡 <strong>Did you know?</strong> Using more bids when placing a bid increases your visibility. Higher bid
+          weight moves your bid higher in the client&rsquo;s list, giving you a better chance of getting hired.
+        </p>
+      </div>
+
       {bids.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center dark:bg-[#1a1a2e] dark:shadow-gray-900/60">
           <p className="text-gray-500 dark:text-gray-400 mb-4">You haven't placed any bids yet.</p>
