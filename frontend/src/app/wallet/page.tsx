@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit, verifyDeposit, getBanks, resolveAccount } from '@/lib/api';
+import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit, verifyDeposit, getBanks, resolveAccount, reportFailedDeposit } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
@@ -34,6 +34,10 @@ export default function WalletPage() {
   const [depositing, setDepositing] = useState(false);
   const [depositMsg, setDepositMsg] = useState('');
   const [verifyingRef, setVerifyingRef] = useState<string | null>(null);
+  const [failedRef, setFailedRef] = useState<string | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportDescription, setReportDescription] = useState('');
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     if (!authInitialized) return;
@@ -63,7 +67,9 @@ export default function WalletPage() {
           window.history.replaceState({}, '', '/wallet');
         })
         .catch((err: any) => {
-          setDepositMsg(err.message || 'Payment verification failed. Contact support if your money was deducted.');
+          setFailedRef(ref);
+          setDepositMsg(err.message || 'Payment verification failed. Your money may have been deducted but not credited.');
+          reportFailedDeposit(ref, token).catch(() => {});
         })
         .finally(() => {
           setDepositing(false);
@@ -222,6 +228,14 @@ export default function WalletPage() {
             <p className={`mt-2 text-sm ${depositMsg.includes('success') || depositMsg.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
               {depositMsg}
             </p>
+          )}
+          {failedRef && (
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="mt-2 text-sm text-red-600 underline hover:text-red-700"
+            >
+              Report Issue — Admin will review and credit your wallet
+            </button>
           )}
         </div>
 
@@ -394,6 +408,57 @@ export default function WalletPage() {
           )}
         </div>
       </div>
+
+      {/* Report Issue Modal */}
+      {showReportModal && failedRef && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-2">Report Deposit Issue</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Reference: <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">{failedRef}</code>
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              Tell us what happened (optional):
+            </p>
+            <textarea
+              value={reportDescription}
+              onChange={(e) => setReportDescription(e.target.value)}
+              placeholder="e.g. Payment was deducted but wallet wasn't credited."
+              rows={3}
+              className="w-full px-3 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600 mb-4"
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setShowReportModal(false); setReportDescription(''); }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded dark:text-gray-400 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!token || !failedRef) return;
+                  setReporting(true);
+                  try {
+                    await reportFailedDeposit(failedRef, token, reportDescription);
+                    setShowReportModal(false);
+                    setReportDescription('');
+                    setDepositMsg('Issue reported. Admin will review and credit your wallet.');
+                    setFailedRef(null);
+                  } catch {
+                    setDepositMsg('Failed to report. Please try again.');
+                  } finally {
+                    setReporting(false);
+                  }
+                }}
+                disabled={reporting}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                {reporting ? 'Submitting...' : 'Submit Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

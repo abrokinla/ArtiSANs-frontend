@@ -432,6 +432,14 @@ export async function verifyDeposit(reference: string, token: string) {
   });
 }
 
+export async function reportFailedDeposit(reference: string, token: string, description?: string) {
+  return apiRequest('/profiles/report_failed_deposit/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reference, description: description || '' }),
+  });
+}
+
 export async function cancelJob(jobId: string, token: string) {
   return apiRequest(`/jobs/${jobId}/cancel_job/`, {
     method: 'POST',
@@ -481,4 +489,23 @@ export async function getAdminDisputes(token: string, params?: { status?: string
   const query = new URLSearchParams();
   if (params?.status) query.set('status', params.status);
   return apiRequest(`/profiles/admin_disputes/?${query.toString()}`, { token });
+}
+
+export async function getAdminPendingDeposits(token: string) {
+  return apiRequest('/profiles/admin_pending_deposits/', { token });
+}
+
+export async function getAdminPaystackTransactions(token: string, params?: { page?: number; reference?: string }) {
+  const query = new URLSearchParams();
+  if (params?.page) query.set('page', params.page.toString());
+  if (params?.reference) query.set('reference', params.reference);
+  return apiRequest(`/profiles/admin_paystack_transactions/?${query.toString()}`, { token });
+}
+
+export async function adminConfirmDeposit(reference: string, token: string) {
+  return apiRequest('/profiles/admin_confirm_deposit/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reference }),
+  });
 }
