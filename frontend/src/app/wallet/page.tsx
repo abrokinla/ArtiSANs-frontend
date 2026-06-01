@@ -46,10 +46,10 @@ export default function WalletPage() {
   }, [authInitialized, token, user]);
 
   useEffect(() => {
-    if (user?.role === 'artisan' && token) {
+    if (token) {
       getBanks(token).then(setBanks).catch(() => {});
     }
-  }, [user?.role, token]);
+  }, [token]);
 
   // Handle Paystack redirect back to wallet page after payment
   useEffect(() => {
@@ -83,18 +83,16 @@ export default function WalletPage() {
     try {
       const walletData = await getWallet(token);
       setWallet(walletData);
-      if (user?.role === 'artisan') {
-        try {
-          const bankData = await getBankDetails(token);
-          setBank(bankData);
-          setBankForm({
-            bank_name: bankData.bank_name || '',
-            account_number: '',
-            account_name: bankData.account_name || '',
-            bank_code: bankData.bank_code || '',
-          });
-        } catch {}
-      }
+      try {
+        const bankData = await getBankDetails(token);
+        setBank(bankData);
+        setBankForm({
+          bank_name: bankData.bank_name || '',
+          account_number: '',
+          account_name: bankData.account_name || '',
+          bank_code: bankData.bank_code || '',
+        });
+      } catch {}
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -164,10 +162,7 @@ export default function WalletPage() {
     setWithdrawMsg('');
     try {
       const result = await withdrawFromWallet(amount, token);
-      const msg = result.transfer_status === 'otp'
-        ? `Withdrawal initiated! Check your Paystack email/phone for OTP to complete.`
-        : `Withdrawn ₦${amount.toLocaleString()} successfully`;
-      setWithdrawMsg(msg);
+      setWithdrawMsg(result.message || `Withdrawn ₦${amount.toLocaleString()} successfully`);
       setWithdrawAmount('');
       loadWallet();
     } catch (err: any) {
@@ -239,10 +234,10 @@ export default function WalletPage() {
           )}
         </div>
 
-        {user?.role === 'artisan' && (<>
         {/* Withdraw */}
         <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-sm dark:shadow-gray-900/60 dark:border dark:border-gray-700 p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Withdraw to Bank</h2>
+          <p className="text-xs text-gray-400 mb-3">Fee: ₦50 per withdrawal</p>
           {bank?.has_bank_details ? (
             <div className="flex gap-3 items-end">
               <div className="flex-1">
@@ -365,7 +360,6 @@ export default function WalletPage() {
             </div>
           )}
         </div>
-        </>)}
 
         {/* Transaction History */}
         <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-sm dark:shadow-gray-900/60 dark:border dark:border-gray-700 p-6">

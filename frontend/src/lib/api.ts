@@ -357,7 +357,7 @@ export async function getWallet(token: string) {
 }
 
 export async function getBankDetails(token: string) {
-  return apiRequest('/artisans/bank/', { token });
+  return apiRequest('/profiles/bank/', { token });
 }
 
 export async function saveBankDetails(data: {
@@ -366,7 +366,7 @@ export async function saveBankDetails(data: {
   account_name: string;
   bank_code: string;
 }, token: string) {
-  return apiRequest('/artisans/bank/', {
+  return apiRequest('/profiles/bank/', {
     method: 'PUT',
     token,
     body: JSON.stringify(data),
@@ -374,7 +374,7 @@ export async function saveBankDetails(data: {
 }
 
 export async function withdrawFromWallet(amount: number, token: string) {
-  return apiRequest('/artisans/withdraw/', {
+  return apiRequest('/profiles/withdraw/', {
     method: 'POST',
     token,
     body: JSON.stringify({ amount }),
@@ -382,11 +382,11 @@ export async function withdrawFromWallet(amount: number, token: string) {
 }
 
 export async function getBanks(token: string) {
-  return apiRequest('/artisans/banks/', { token });
+  return apiRequest('/profiles/banks/', { token });
 }
 
 export async function resolveAccount(accountNumber: string, bankCode: string, token: string) {
-  return apiRequest('/artisans/resolve_account/', {
+  return apiRequest('/profiles/resolve_account/', {
     method: 'POST',
     token,
     body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode }),
