@@ -509,3 +509,23 @@ export async function adminConfirmDeposit(reference: string, token: string) {
     body: JSON.stringify({ reference }),
   });
 }
+
+export async function getAdminPendingWithdrawals(token: string) {
+  return apiRequest('/profiles/admin_pending_withdrawals/', { token });
+}
+
+export async function adminRetryWithdrawal(reference: string, token: string) {
+  return apiRequest('/profiles/admin_retry_withdrawal/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reference }),
+  });
+}
+
+export async function adminRefundWithdrawal(reference: string, token: string) {
+  return apiRequest('/profiles/admin_refund_withdrawal/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reference }),
+  });
+}

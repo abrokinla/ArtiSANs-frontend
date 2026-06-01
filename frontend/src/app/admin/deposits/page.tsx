@@ -2,17 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getAdminPendingDeposits, getAdminPaystackTransactions, adminConfirmDeposit } from '@/lib/api';
+import { getAdminPendingDeposits, getAdminPaystackTransactions, adminConfirmDeposit, getAdminPendingWithdrawals, adminRetryWithdrawal, adminRefundWithdrawal } from '@/lib/api';
 
 export default function AdminDepositsPage() {
   const { token } = useAuth();
-  const [tab, setTab] = useState<'pending' | 'paystack'>('pending');
+  const [tab, setTab] = useState<'pending' | 'paystack' | 'withdrawals'>('pending');
 
   // Pending deposits
   const [pending, setPending] = useState<any[]>([]);
   const [loadingPending, setLoadingPending] = useState(true);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [confirmMsg, setConfirmMsg] = useState('');
+
+  // Pending withdrawals
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [loadingWithdrawals, setLoadingWithdrawals] = useState(false);
+  const [withdrawalAction, setWithdrawalAction] = useState<string | null>(null);
+  const [withdrawalMsg, setWithdrawalMsg] = useState('');
 
   // Paystack logs
   const [paystackData, setPaystackData] = useState<any>(null);
@@ -47,6 +53,15 @@ export default function AdminDepositsPage() {
     }
   }, [token, tab]);
 
+  useEffect(() => {
+    if (!token || tab !== 'withdrawals') return;
+    setLoadingWithdrawals(true);
+    getAdminPendingWithdrawals(token)
+      .then(setWithdrawals)
+      .catch(console.error)
+      .finally(() => setLoadingWithdrawals(false));
+  }, [token, tab]);
+
   const handleConfirm = async (reference: string) => {
     if (!token) return;
     setConfirming(reference);
@@ -59,6 +74,36 @@ export default function AdminDepositsPage() {
       setConfirmMsg(err.message || 'Failed to confirm deposit');
     } finally {
       setConfirming(null);
+    }
+  };
+
+  const handleRetry = async (reference: string) => {
+    if (!token) return;
+    setWithdrawalAction(`retry_${reference}`);
+    setWithdrawalMsg('');
+    try {
+      const result = await adminRetryWithdrawal(reference, token);
+      setWithdrawalMsg(result.message || 'Withdrawal retried');
+      setWithdrawals(prev => prev.filter(w => w.reference !== reference));
+    } catch (err: any) {
+      setWithdrawalMsg(err.message || 'Failed to retry withdrawal');
+    } finally {
+      setWithdrawalAction(null);
+    }
+  };
+
+  const handleRefund = async (reference: string) => {
+    if (!token) return;
+    setWithdrawalAction(`refund_${reference}`);
+    setWithdrawalMsg('');
+    try {
+      const result = await adminRefundWithdrawal(reference, token);
+      setWithdrawalMsg(result.message || 'Withdrawal refunded');
+      setWithdrawals(prev => prev.filter(w => w.reference !== reference));
+    } catch (err: any) {
+      setWithdrawalMsg(err.message || 'Failed to refund withdrawal');
+    } finally {
+      setWithdrawalAction(null);
     }
   };
 
@@ -77,6 +122,16 @@ export default function AdminDepositsPage() {
           }`}
         >
           Pending ({pending.length})
+        </button>
+        <button
+          onClick={() => setTab('withdrawals')}
+          className={`pb-2 px-1 text-sm font-medium border-b-2 transition ${
+            tab === 'withdrawals'
+              ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Withdrawals ({withdrawals.length})
         </button>
         <button
           onClick={() => setTab('paystack')}
@@ -139,6 +194,75 @@ export default function AdminDepositsPage() {
                     >
                       {confirming === d.reference ? 'Verifying...' : 'Verify & Credit'}
                     </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Withdrawals Tab */}
+      {tab === 'withdrawals' && (
+        <div>
+          {withdrawalMsg && (
+            <div className={`mb-4 p-3 rounded-lg text-sm ${
+              withdrawalMsg.includes('refunded') || withdrawalMsg.includes('retried')
+                ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300'
+                : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300'
+            }`}>
+              {withdrawalMsg}
+            </div>
+          )}
+          {loadingWithdrawals ? (
+            <p className="text-gray-500">Loading...</p>
+          ) : withdrawals.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400">No pending withdrawals.</p>
+          ) : (
+            <div className="space-y-4">
+              {withdrawals.map((w: any) => (
+                <div key={w.id} className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-sm dark:border dark:border-gray-700 p-5">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-gray-900 dark:text-white">{w.username}</span>
+                        <span className="text-xs text-gray-400">(ID: {w.user_id})</span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Reference: <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">{w.reference}</code>
+                      </p>
+                      <div className="flex gap-4 mt-1 text-sm">
+                        <span className="font-medium text-green-600 dark:text-green-400">
+                          ₦{w.amount?.toLocaleString()}
+                        </span>
+                        <span className="text-gray-400">Fee: ₦{w.fee?.toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Bank: {w.bank_name || 'Unknown'} {w.account_number ? `••••${w.account_number.slice(-4)}` : ''}
+                      </p>
+                      {w.paystack_error && (
+                        <p className="text-sm text-red-600 mt-1 bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                          Error: {w.paystack_error}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-2">{new Date(w.created_at).toLocaleString()}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleRetry(w.reference)}
+                        disabled={withdrawalAction === `retry_${w.reference}`}
+                        className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {withdrawalAction === `retry_${w.reference}` ? 'Retrying...' : 'Retry'}
+                      </button>
+                      <button
+                        onClick={() => handleRefund(w.reference)}
+                        disabled={withdrawalAction === `refund_${w.reference}`}
+                        className="px-3 py-2 bg-amber-600 text-white text-sm rounded hover:bg-amber-700 disabled:opacity-50 whitespace-nowrap"
+                      >
+                        Refund
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
