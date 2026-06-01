@@ -191,6 +191,11 @@ export default function Home() {
                           ({artisan.review_count || 0} reviews)
                         </span>
                       </div>
+                      {artisan.is_boosted && (
+                        <span className="badge badge-warning">
+                          ✨ Boosted
+                        </span>
+                      )}
                       {artisan.is_verified && (
                         <span className="badge badge-success">
                           Verified

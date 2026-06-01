@@ -523,6 +523,15 @@ export async function adminRetryWithdrawal(reference: string, token: string) {
   });
 }
 
+// Profile Boost
+export async function boostProfile(duration: 7 | 30, token: string) {
+  return apiRequest('/artisans/boost/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ duration }),
+  });
+}
+
 export async function adminRefundWithdrawal(reference: string, token: string) {
   return apiRequest('/profiles/admin_refund_withdrawal/', {
     method: 'POST',

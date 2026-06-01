@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getMyProfile, getMyJobs, getMyArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob, getWallet } from '@/lib/api';
+import { getMyProfile, getMyJobs, getMyArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob, getWallet, boostProfile } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 const BID_PRICING = [
@@ -38,6 +38,11 @@ export default function DashboardPage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
+
+  // Profile Boost
+  const [showBoostModal, setShowBoostModal] = useState(false);
+  const [boostLoading, setBoostLoading] = useState(false);
+  const [selectedBoostDuration, setSelectedBoostDuration] = useState<7 | 30>(7);
 
   useEffect(() => {
     if (!authInitialized) return;
@@ -108,6 +113,24 @@ export default function DashboardPage() {
       console.error('NIN verification failed:', err);
     } finally {
       setVerifying(false);
+    }
+  };
+
+  const handleBoost = async () => {
+    setBoostLoading(true);
+    try {
+      const result = await boostProfile(selectedBoostDuration, token!);
+      setWalletBalance(result.wallet_balance);
+      setArtisanProfile((prev: any) => ({
+        ...prev,
+        is_boosted: true,
+        boost_expires_at: result.boost_expires_at,
+      }));
+      setShowBoostModal(false);
+    } catch (err) {
+      console.error('Boost failed:', err);
+    } finally {
+      setBoostLoading(false);
     }
   };
 
@@ -557,6 +580,23 @@ export default function DashboardPage() {
                       {' '}{(artisanProfile?.average_rating || 0).toFixed(1)}
                     </p>
                   </div>
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Profile Boost</p>
+                    <p className="font-medium">
+                      {artisanProfile?.is_boosted ? (
+                        <span className="text-purple-600 dark:text-purple-400">
+                          ✨ Active
+                          {artisanProfile?.boost_expires_at && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                              (until {new Date(artisanProfile.boost_expires_at).toLocaleDateString()})
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">Not boosted</span>
+                      )}
+                    </p>
+                  </div>
                 </>
               )}
             </div>
@@ -578,6 +618,12 @@ export default function DashboardPage() {
                     Buy Bids
                   </button>
                 )}
+                <button
+                  onClick={() => setShowBoostModal(true)}
+                  className="px-4 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 dark:hover:bg-purple-800"
+                >
+                  {artisanProfile?.is_boosted ? 'Extend Boost' : 'Boost Profile ✨'}
+                </button>
               </div>
             )}
           </div>
@@ -652,6 +698,74 @@ export default function DashboardPage() {
                 className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 dark:hover:bg-indigo-800"
               >
                 {verifying ? 'Verifying...' : 'Verify'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Boost Profile Modal */}
+      {showBoostModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-2">Boost Your Profile ✨</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Boosted profiles appear higher in search results and get more visibility from clients.
+            </p>
+            <div className="space-y-2 mb-6">
+              <label
+                className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${
+                  selectedBoostDuration === 7 ? 'border-purple-500 bg-purple-50 dark:border-purple-400 dark:bg-purple-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="boostDuration"
+                    checked={selectedBoostDuration === 7}
+                    onChange={() => setSelectedBoostDuration(7)}
+                    className="accent-purple-600"
+                  />
+                  <span className="font-medium">1 Week</span>
+                </div>
+                <span className="font-bold text-lg">₦500</span>
+              </label>
+              <label
+                className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition ${
+                  selectedBoostDuration === 30 ? 'border-purple-500 bg-purple-50 dark:border-purple-400 dark:bg-purple-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="boostDuration"
+                    checked={selectedBoostDuration === 30}
+                    onChange={() => setSelectedBoostDuration(30)}
+                    className="accent-purple-600"
+                  />
+                  <span className="font-medium">1 Month <span className="text-green-500 text-xs">(Best value)</span></span>
+                </div>
+                <span className="font-bold text-lg">₦1,500</span>
+              </label>
+            </div>
+            {walletBalance !== null && walletBalance < (selectedBoostDuration === 7 ? 500 : 1500) && (
+              <p className="text-sm text-red-600 dark:text-red-400 mb-4">
+                Insufficient wallet balance. You have ₦{walletBalance.toLocaleString()}. Please deposit funds first.
+              </p>
+            )}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowBoostModal(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded dark:text-gray-400 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBoost}
+                disabled={boostLoading || (walletBalance !== null && walletBalance < (selectedBoostDuration === 7 ? 500 : 1500))}
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 dark:hover:bg-purple-800"
+              >
+                {boostLoading ? 'Processing...' : `Pay ₦${selectedBoostDuration === 7 ? '500' : '1,500'} from Wallet`}
               </button>
             </div>
           </div>

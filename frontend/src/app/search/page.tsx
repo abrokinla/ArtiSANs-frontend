@@ -145,6 +145,11 @@ export default function SearchPage() {
                       {artisan.lga_name ? `${artisan.lga_name}, ${artisan.state_name}` : artisan.location || 'Location not set'}
                     </p>
                     <div className="flex flex-wrap gap-1 mt-1">
+                      {artisan.is_boosted && (
+                        <span className="inline-block bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 text-xs px-2 py-1 rounded font-medium">
+                          ✨ Boosted
+                        </span>
+                      )}
                       {artisan.is_verified && (
                         <span className="inline-block bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-xs px-2 py-1 rounded">
                           Verified ✓
