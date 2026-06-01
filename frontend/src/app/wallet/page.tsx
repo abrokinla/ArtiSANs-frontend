@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit, verifyDeposit } from '@/lib/api';
+import { getWallet, getBankDetails, saveBankDetails, withdrawFromWallet, deposit, verifyDeposit, getBanks, resolveAccount } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
@@ -14,6 +14,10 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Banks list
+  const [banks, setBanks] = useState<any[]>([]);
+  const [resolving, setResolving] = useState(false);
+
   // Withdraw
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawing, setWithdrawing] = useState(false);
@@ -23,6 +27,7 @@ export default function WalletPage() {
   const [editingBank, setEditingBank] = useState(false);
   const [bankForm, setBankForm] = useState({ bank_name: '', account_number: '', account_name: '', bank_code: '' });
   const [savingBank, setSavingBank] = useState(false);
+  const [bankSaveError, setBankSaveError] = useState('');
 
   // Deposit
   const [depositAmount, setDepositAmount] = useState('');
@@ -35,6 +40,12 @@ export default function WalletPage() {
     if (!token) { router.push('/auth'); return; }
     loadWallet();
   }, [authInitialized, token, user]);
+
+  useEffect(() => {
+    if (user?.role === 'artisan' && token) {
+      getBanks(token).then(setBanks).catch(() => {});
+    }
+  }, [user?.role, token]);
 
   // Handle Paystack redirect back to wallet page after payment
   useEffect(() => {
@@ -49,7 +60,6 @@ export default function WalletPage() {
         .then((result) => {
           setDepositMsg(result.message || 'Payment verified successfully!');
           loadWallet();
-          // Clean URL params
           window.history.replaceState({}, '', '/wallet');
         })
         .catch((err: any) => {
@@ -77,9 +87,7 @@ export default function WalletPage() {
             account_name: bankData.account_name || '',
             bank_code: bankData.bank_code || '',
           });
-        } catch {
-          // Bank details not available for non-artisans
-        }
+        } catch {}
       }
     } catch (err: any) {
       setError(err.message);
@@ -88,15 +96,30 @@ export default function WalletPage() {
     }
   };
 
+  const handleAccountNumberChange = useCallback(async (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 10);
+    setBankForm(prev => ({ ...prev, account_number: digits, account_name: '' }));
+
+    if (digits.length === 10 && bankForm.bank_code && token) {
+      setResolving(true);
+      try {
+        const result = await resolveAccount(digits, bankForm.bank_code, token);
+        setBankForm(prev => ({ ...prev, account_name: result.account_name }));
+      } catch {}
+      setResolving(false);
+    }
+  }, [bankForm.bank_code, token]);
+
   const handleSaveBank = async () => {
     if (!token) return;
     setSavingBank(true);
+    setBankSaveError('');
     try {
       const result = await saveBankDetails(bankForm, token);
       setBank(result);
       setEditingBank(false);
     } catch (err: any) {
-      setError(err.message);
+      setBankSaveError(err.message || 'Failed to save bank details');
     } finally {
       setSavingBank(false);
     }
@@ -112,10 +135,8 @@ export default function WalletPage() {
     try {
       const result = await deposit(amount, token);
       if (result.authorization_url && !result.authorization_url.startsWith('/mock')) {
-        // Live mode — redirect to Paystack checkout
         window.location.href = result.authorization_url;
       } else {
-        // Mock mode — already credited
         setDepositMsg(result.message || `₦${amount.toLocaleString()} deposited successfully!`);
         setDepositAmount('');
         loadWallet();
@@ -137,7 +158,10 @@ export default function WalletPage() {
     setWithdrawMsg('');
     try {
       const result = await withdrawFromWallet(amount, token);
-      setWithdrawMsg(`Withdrawn ₦${amount.toLocaleString()} successfully`);
+      const msg = result.transfer_status === 'otp'
+        ? `Withdrawal initiated! Check your Paystack email/phone for OTP to complete.`
+        : `Withdrawn ₦${amount.toLocaleString()} successfully`;
+      setWithdrawMsg(msg);
       setWithdrawAmount('');
       loadWallet();
     } catch (err: any) {
@@ -149,6 +173,8 @@ export default function WalletPage() {
 
   if (!authInitialized || loading) return <div className="text-center py-12 text-gray-500">Loading...</div>;
   if (error) return <div className="text-center py-12 text-red-600">{error}</div>;
+
+  const selectedBank = banks.find(b => b.code === bankForm.bank_code);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23]">
@@ -193,7 +219,7 @@ export default function WalletPage() {
             </button>
           </div>
           {depositMsg && (
-            <p className={`mt-2 text-sm ${depositMsg.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`mt-2 text-sm ${depositMsg.includes('success') || depositMsg.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
               {depositMsg}
             </p>
           )}
@@ -229,7 +255,7 @@ export default function WalletPage() {
             </p>
           )}
           {withdrawMsg && (
-            <p className={`mt-2 text-sm ${withdrawMsg.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`mt-2 text-sm ${withdrawMsg.includes('success') || withdrawMsg.includes('initiated') ? 'text-green-600' : 'text-red-600'}`}>
               {withdrawMsg}
             </p>
           )}
@@ -247,40 +273,55 @@ export default function WalletPage() {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Bank Name</label>
-                <input
-                  value={bankForm.bank_name}
-                  onChange={(e) => setBankForm({ ...bankForm, bank_name: e.target.value })}
+                <select
+                  value={bankForm.bank_code}
+                  onChange={(e) => {
+                    const bank = banks.find(b => b.code === e.target.value);
+                    setBankForm({ ...bankForm, bank_code: e.target.value, bank_name: bank?.name || '' });
+                  }}
                   className="w-full px-3 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
-                />
+                >
+                  <option value="">Select a bank</option>
+                  {banks.map((b: any) => (
+                    <option key={b.code} value={b.code}>{b.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Account Number</label>
-                <input
-                  value={bankForm.account_number}
-                  onChange={(e) => setBankForm({ ...bankForm, account_number: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                  maxLength={10}
-                  placeholder="10-digit account number"
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
-                />
+                <div className="relative">
+                  <input
+                    value={bankForm.account_number}
+                    onChange={(e) => handleAccountNumberChange(e.target.value)}
+                    maxLength={10}
+                    placeholder="10-digit account number"
+                    className="w-full px-3 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
+                  />
+                  {resolving && <span className="absolute right-3 top-2 text-xs text-gray-400">Resolving...</span>}
+                </div>
               </div>
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Account Name</label>
                 <input
                   value={bankForm.account_name}
                   onChange={(e) => setBankForm({ ...bankForm, account_name: e.target.value })}
+                  placeholder="Auto-resolved when you enter account number"
                   className="w-full px-3 py-2 border rounded-lg dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                 />
               </div>
+              {bankSaveError && (
+                <p className="text-sm text-red-600">{bankSaveError}</p>
+              )}
               <div className="flex gap-3">
                 <button
-                  onClick={() => setEditingBank(false)}
+                  onClick={() => { setEditingBank(false); setBankSaveError(''); }}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded dark:text-gray-400"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveBank}
-                  disabled={savingBank}
+                  disabled={savingBank || !bankForm.bank_code || bankForm.account_number.length !== 10}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                 >
                   {savingBank ? 'Saving...' : 'Save'}
@@ -294,6 +335,9 @@ export default function WalletPage() {
                   <p>Bank: {bank.bank_name}</p>
                   <p>Account: ••••{bank.account_number}</p>
                   <p>Name: {bank.account_name}</p>
+                  {bank.recipient_created && (
+                    <p className="text-green-600 dark:text-green-400 mt-1">✓ Linked to Paystack</p>
+                  )}
                 </div>
               ) : (
                 <p className="text-gray-500 dark:text-gray-400 text-sm">No bank details saved.</p>
@@ -324,13 +368,24 @@ export default function WalletPage() {
                       {tx.job_title || ''} {new Date(tx.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <span className={`font-semibold ${
-                    ['wallet_credit'].includes(tx.type)
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {['wallet_credit'].includes(tx.type) ? '+' : '-'}₦{tx.amount?.toLocaleString()}
-                  </span>
+                  <div className="text-right">
+                    <span className={`font-semibold ${
+                      ['wallet_credit'].includes(tx.type)
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {['wallet_credit'].includes(tx.type) ? '+' : '-'}₦{tx.amount?.toLocaleString()}
+                    </span>
+                    {tx.status && tx.status !== 'success' && (
+                      <p className={`text-xs ${
+                        tx.status === 'pending' ? 'text-amber-500' :
+                        tx.status === 'failed' ? 'text-red-500' :
+                        'text-gray-400'
+                      }`}>
+                        {tx.status}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

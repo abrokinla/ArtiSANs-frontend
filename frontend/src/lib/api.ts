@@ -381,6 +381,18 @@ export async function withdrawFromWallet(amount: number, token: string) {
   });
 }
 
+export async function getBanks(token: string) {
+  return apiRequest('/artisans/banks/', { token });
+}
+
+export async function resolveAccount(accountNumber: string, bankCode: string, token: string) {
+  return apiRequest('/artisans/resolve_account/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode }),
+  });
+}
+
 export async function fundEscrow(jobId: string, token: string) {
   return apiRequest(`/jobs/${jobId}/fund_escrow/`, {
     method: 'POST',
