@@ -189,6 +189,16 @@ export default function DashboardPage() {
             <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Completed</h3>
             <p className="text-3xl font-bold text-green-600 dark:text-green-400">{completedJobs.length}</p>
           </div>
+          {user.role === 'artisan' && (
+            <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
+              <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Completion Rate</h3>
+              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                {jobs.length > 0
+                  ? `${Math.round((completedJobs.length / jobs.length) * 100)}%`
+                  : '0%'}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
@@ -536,6 +546,14 @@ export default function DashboardPage() {
                       ) : (
                         <span className="text-red-500">Not Verified</span>
                       )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Rating</p>
+                    <p className="font-medium text-amber-500">
+                      {'★'.repeat(Math.round(artisanProfile?.average_rating || 0))}
+                      {'☆'.repeat(5 - Math.round(artisanProfile?.average_rating || 0))}
+                      {' '}{(artisanProfile?.average_rating || 0).toFixed(1)}
                     </p>
                   </div>
                 </>

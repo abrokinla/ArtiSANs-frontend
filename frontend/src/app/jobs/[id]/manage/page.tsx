@@ -80,7 +80,7 @@ export default function JobManagePage() {
         return;
       }
       
-      if (token && (isClient || isAssignedArtisan)) {
+      if (token && isClient) {
         const bidsData = await getJobBids(id, token);
         setBids(bidsData);
       }
