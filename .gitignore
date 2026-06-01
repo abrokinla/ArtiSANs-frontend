@@ -3,3 +3,4 @@ node_modules/
 .open-next
 *.sqlite3
 hermes_conversation_20260512_130513.json
+.opencode/

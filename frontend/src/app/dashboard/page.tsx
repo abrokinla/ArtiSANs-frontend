@@ -160,6 +160,7 @@ export default function DashboardPage() {
   const activeJobs = jobs.filter((j: any) => ['assigned', 'in_progress'].includes(j.status));
   const awaitingJobs = jobs.filter((j: any) => j.status === 'awaiting_confirmation');
   const completedJobs = jobs.filter((j: any) => j.status === 'completed');
+  const artisanOwnJobs = jobs.filter((j: any) => !['pending', 'bidding'].includes(j.status));
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f23]">
@@ -193,9 +194,9 @@ export default function DashboardPage() {
             <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
               <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Completion Rate</h3>
               <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                {jobs.length > 0
-                  ? `${Math.round((completedJobs.length / jobs.length) * 100)}%`
-                  : '0%'}
+                {artisanOwnJobs.length > 0
+                  ? `${Math.round((completedJobs.length / artisanOwnJobs.length) * 100)}%`
+                  : 'N/A'}
               </p>
             </div>
           )}
