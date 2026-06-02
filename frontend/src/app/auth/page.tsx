@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { register, login } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import PasswordStrength from '@/components/PasswordStrength';
 
-export default function AuthPage() {
+function AuthForm() {
+  const searchParams = useSearchParams();
+  const resetSuccess = searchParams.get('reset') === 'success';
+
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
@@ -16,6 +19,7 @@ export default function AuthPage() {
     role: 'client' as 'client' | 'artisan',
     phone_number: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,6 +40,11 @@ export default function AuthPage() {
         authLogin(data.access, data.refresh, data.user);
         router.push('/dashboard');
       } else {
+        if (formData.password !== confirmPassword) {
+          setError('Passwords do not match.');
+          setLoading(false);
+          return;
+        }
         if (!termsAccepted) {
           setError('You must accept the Terms and Conditions to register.');
           setLoading(false);
@@ -65,18 +74,24 @@ export default function AuthPage() {
           {/* Toggle */}
           <div className="flex gap-4 mb-6">
             <button
-              onClick={() => setIsLogin(true)}
+              onClick={() => { setIsLogin(true); setConfirmPassword(''); }}
               className={`flex-1 py-2 rounded ${isLogin ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
             >
               Login
             </button>
             <button
-              onClick={() => setIsLogin(false)}
+              onClick={() => { setIsLogin(false); setConfirmPassword(''); }}
               className={`flex-1 py-2 rounded ${!isLogin ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
             >
               Register
             </button>
           </div>
+
+          {resetSuccess && (
+            <div className="bg-green-50 text-green-700 p-4 rounded mb-4">
+              Password reset successful. You can now sign in with your new password.
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded mb-4">
@@ -172,6 +187,29 @@ export default function AuthPage() {
               {!isLogin && <PasswordStrength password={formData.password} />}
             </div>
 
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                />
+              </div>
+            )}
+
+            {isLogin && (
+              <div className="text-sm text-right">
+                <Link href="/auth/forgot-password" className="text-blue-600 dark:text-blue-400 hover:text-blue-800">
+                  Forgot password?
+                </Link>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
@@ -183,5 +221,13 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthForm />
+    </Suspense>
   );
 }
