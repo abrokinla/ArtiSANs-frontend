@@ -7,3 +7,6 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 NEXT_PUBLIC_API_URL = "https://artisans-ojzr.onrender.com/api"
 NEXT_PUBLIC_WS_URL = "https://artisans-ojzr.onrender.com"
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY = "pk_live_your_key_here"
+SENTRY_ORG = "your-sentry-org"
+SENTRY_PROJECT = "artisans-ng-frontend"
