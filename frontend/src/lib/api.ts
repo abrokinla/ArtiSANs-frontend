@@ -55,6 +55,7 @@ async function apiRequest(endpoint: string, options: RequestOptions = {}) {
   let response = await fetch(`${API_URL}${endpoint}`, {
     ...fetchOptions,
     headers,
+    cache: 'no-store',
   });
   
   if (response.status === 401 && token) {
@@ -64,6 +65,7 @@ async function apiRequest(endpoint: string, options: RequestOptions = {}) {
       response = await fetch(`${API_URL}${endpoint}`, {
         ...fetchOptions,
         headers,
+        cache: 'no-store',
       });
     } catch {
       throw new Error('Session expired. Please log in again.');
@@ -71,8 +73,13 @@ async function apiRequest(endpoint: string, options: RequestOptions = {}) {
   }
   
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'An error occurred' }));
-    throw new Error(error.error || error.detail || `HTTP ${response.status}`);
+    const body = await response.json().catch(() => ({}));
+    if (typeof body === 'string') throw new Error(body);
+    if (body.detail) throw new Error(body.detail);
+    if (body.non_field_errors) throw new Error(String(body.non_field_errors));
+    const firstError = Object.values(body).flat().find(Boolean);
+    if (firstError) throw new Error(String(firstError));
+    throw new Error(`HTTP ${response.status}`);
   }
   
   return response.json();

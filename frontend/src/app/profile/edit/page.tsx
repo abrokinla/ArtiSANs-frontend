@@ -37,6 +37,7 @@ export default function EditProfilePage() {
     phone_number: '',
     location: '',
     bio: '',
+    gender: '',
     profile_picture_url: '',
     // Artisan-specific fields (if applicable)
     categories: [] as number[],
@@ -88,6 +89,7 @@ export default function EditProfilePage() {
           phone_number: profile.phone_number || '',
           location: profile.location || '',
           bio: profile.bio || '',
+          gender: profile.gender || '',
           profile_picture_url: profile.profile_picture_url || '',
         }));
         setLocationValue({
@@ -236,6 +238,7 @@ export default function EditProfilePage() {
         phone_number: formData.phone_number,
         location: formData.location,
         bio: formData.bio,
+        gender: formData.gender,
         profile_picture_url: formData.profile_picture_url,
       };
       if (locationValue.state_id) profileData.state = locationValue.state_id;
@@ -531,6 +534,22 @@ export default function EditProfilePage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
                   disabled
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Gender
+                </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white dark:bg-[#1a1a2e] dark:text-gray-200 dark:border-gray-600"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
             </div>
           </section>

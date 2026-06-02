@@ -29,6 +29,7 @@ export default function OnboardingPage() {
     last_name: '',
     phone_number: '',
     location: '',
+    gender: '',
   });
   const [locationValue, setLocationValue] = useState<LocationValue>({
     state_id: null,
@@ -58,6 +59,7 @@ export default function OnboardingPage() {
           last_name: profile.last_name || currentUser.last_name || '',
           phone_number: profile.phone_number || '',
           location: profile.location || '',
+          gender: profile.gender || '',
         });
         if (profile.state) {
           setLocationValue({
@@ -98,6 +100,7 @@ export default function OnboardingPage() {
         last_name: formData.last_name,
         phone_number: formData.phone_number,
         location: formData.location || `${locationValue.lga_name || ''}, ${locationValue.state_name || ''}`,
+        gender: formData.gender,
         has_completed_onboarding: true,
       };
       if (locationValue.state_id) profilePayload.state = locationValue.state_id;
@@ -108,7 +111,7 @@ export default function OnboardingPage() {
         await updateArtisanProfile({ category_ids: selectedCategories }, token!);
       }
 
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message || 'Failed to save');
     } finally {
@@ -174,6 +177,19 @@ export default function OnboardingPage() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
+                <select
+                  value={formData.gender}
+                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
               <LocationSelect value={locationValue} onChange={setLocationValue} />
             </div>
           )}
@@ -207,6 +223,7 @@ export default function OnboardingPage() {
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2 text-sm">
                 <p><span className="font-medium text-gray-700 dark:text-gray-300">Name:</span> {formData.first_name} {formData.last_name}</p>
                 <p><span className="font-medium text-gray-700 dark:text-gray-300">Phone:</span> {formData.phone_number}</p>
+                <p><span className="font-medium text-gray-700 dark:text-gray-300">Gender:</span> {formData.gender ? formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1) : '—'}</p>
                 <p><span className="font-medium text-gray-700 dark:text-gray-300">Location:</span> {locationValue.lga_name || '—'}, {locationValue.state_name || '—'}</p>
                 {user?.role === 'artisan' && (
                   <p><span className="font-medium text-gray-700 dark:text-gray-300">Skills:</span> {selectedCategories.length} categories</p>
