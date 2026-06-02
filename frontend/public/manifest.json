@@ -1,0 +1,13 @@
+{
+  "name": "ArtiSANs NG",
+  "short_name": "ArtiSANs",
+  "description": "Nigeria-first platform connecting clients with verified local artisans",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "/logo.png", "sizes": "1408x768", "type": "image/png" },
+    { "src": "/favicon.ico", "sizes": "32x32", "type": "image/x-icon" }
+  ]
+}
