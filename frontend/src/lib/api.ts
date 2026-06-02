@@ -124,7 +124,8 @@ export async function confirmPasswordReset(data: { uid: string; token: string; n
 
 // Categories
 export async function getCategories() {
-  return apiRequest('/categories/');
+  const data = await apiRequest('/categories/');
+  return Array.isArray(data) ? data : (data.results || []);
 }
 
 // Artisans
