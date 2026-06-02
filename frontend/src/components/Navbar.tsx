@@ -60,6 +60,11 @@ export default function Navbar() {
                 Find Artisans
               </Link>
             )}
+            {user?.role === 'artisan' && (
+              <Link href="/jobs/my-jobs" className="text-sm font-medium transition-colors hover:text-rausch" style={{ color: 'var(--color-text-secondary)' }}>
+                My Jobs
+              </Link>
+            )}
             {isLoggedIn && (
               <Link href="/dashboard" className="text-sm font-medium transition-colors hover:text-rausch" style={{ color: 'var(--color-text-secondary)' }}>
                 Dashboard
@@ -187,6 +192,9 @@ export default function Navbar() {
               <Link href="/jobs" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Find Jobs</Link>
             ) : (
               <Link href="/search" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Find Artisans</Link>
+            )}
+            {user?.role === 'artisan' && (
+              <Link href="/jobs/my-jobs" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>My Jobs</Link>
             )}
             {isLoggedIn && (
               <Link href="/dashboard" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Dashboard</Link>

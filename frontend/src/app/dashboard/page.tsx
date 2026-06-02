@@ -198,7 +198,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
             <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Jobs</h3>
-            <p className="text-3xl font-bold">{jobs.length}</p>
+            <p className="text-3xl font-bold">{user.role === 'artisan' ? artisanOwnJobs.length : jobs.length}</p>
           </div>
           {user.role === 'client' && (
             <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6">
@@ -534,19 +534,19 @@ export default function DashboardPage() {
           <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Profile Summary</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {profile.profile_picture_url && (
-                <div className="md:col-span-2 flex items-center gap-3">
+              <div className="md:col-span-2 flex items-center gap-3">
+                {profile.profile_picture_url && (
                   <img
                     src={profile.profile_picture_url}
                     alt="Profile"
                     className="w-16 h-16 rounded-full object-cover"
                   />
-                  <div>
-                    <p className="font-medium">{user?.username}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
-                  </div>
+                )}
+                <div>
+                  <p className="font-medium">{user?.first_name ? `${user.first_name} ${user.last_name}`.trim() : user?.username}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
                 </div>
-              )}
+              </div>
               <div>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">Phone</p>
                 <p className="font-medium">{profile.phone_number}</p>
