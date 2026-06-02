@@ -1,6 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => {
+    console.error('Error caught by boundary:', error);
+  }, [error]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0f0f23] px-4">
       <div className="text-center">
