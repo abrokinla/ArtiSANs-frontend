@@ -254,8 +254,11 @@ export default function AdminDepositsPage() {
                         <span className="text-gray-400">Fee: ₦{w.fee?.toLocaleString()}</span>
                       </div>
                       <p className="text-xs text-gray-400 mt-1">
-                        Bank: {w.bank_name || 'Unknown'} {w.account_number ? `••••${w.account_number.slice(-4)}` : ''}
+                        Bank: {w.bank_name || 'Unknown'} Account: {w.account_number || ''}
                       </p>
+                      {w.account_name && (
+                        <p className="text-xs text-gray-400 mt-0.5">Name: {w.account_name}</p>
+                      )}
                       {w.paystack_error && (
                         <p className="text-sm text-red-600 mt-1 bg-red-50 dark:bg-red-900/20 p-2 rounded">
                           Error: {w.paystack_error}
