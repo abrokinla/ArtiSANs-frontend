@@ -1,6 +1,10 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Terms & Conditions',
+  description: 'Terms and conditions for using ArtiSANs NG — the Nigeria-first platform connecting clients with verified local artisans.',
+};
 
 export default function TermsPage() {
   return (

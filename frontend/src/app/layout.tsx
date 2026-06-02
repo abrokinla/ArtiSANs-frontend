@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import ProfileCompletionBanner from '@/components/ProfileCompletionBanner'
@@ -7,8 +8,21 @@ import { AuthProvider } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 
 export const metadata: Metadata = {
-  title: 'ArtiSANs NG - Connect with Trusted Local Artisans',
+  title: { default: 'ArtiSANs NG - Connect with Trusted Local Artisans', template: '%s | ArtiSANs NG' },
   description: 'Nigeria-first platform connecting clients with verified local artisans',
+  openGraph: {
+    title: 'ArtiSANs NG',
+    description: 'Nigeria-first platform connecting clients with verified local artisans',
+    type: 'website',
+    locale: 'en_NG',
+    siteName: 'ArtiSANs NG',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ArtiSANs NG',
+    description: 'Nigeria-first platform connecting clients with verified local artisans',
+  },
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({
@@ -38,8 +52,13 @@ export default function RootLayout({
             <ProfileCompletionBanner />
             <main>{children}</main>
             <footer className="bg-white dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 py-12 mt-16 transition-colors">
-              <div className="container mx-auto px-4 text-center">
-                <p className="text-secondary dark:text-gray-400 text-sm">&copy; 2026 ArtiSANs NG. All rights reserved.</p>
+              <div className="container mx-auto px-4">
+                <div className="flex flex-wrap justify-center gap-6 mb-4 text-sm">
+                  <Link href="/terms" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Terms</Link>
+                  <Link href="/privacy" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Privacy</Link>
+                  <Link href="/contact" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Contact</Link>
+                </div>
+                <p className="text-center text-secondary dark:text-gray-400 text-sm">&copy; 2026 ArtiSANs NG. All rights reserved.</p>
               </div>
             </footer>
           </AuthProvider>
