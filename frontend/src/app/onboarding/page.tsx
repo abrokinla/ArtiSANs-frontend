@@ -43,16 +43,19 @@ export default function OnboardingPage() {
       return;
     }
 
+    const currentToken: string = token;
+    const currentUser = user;
+
     async function load() {
       try {
-        const profile = await getMyProfile(token);
+        const profile = await getMyProfile(currentToken);
         if (profile.has_completed_onboarding) {
           router.push('/dashboard');
           return;
         }
         setFormData({
-          first_name: profile.first_name || user.first_name || '',
-          last_name: profile.last_name || user.last_name || '',
+          first_name: profile.first_name || currentUser.first_name || '',
+          last_name: profile.last_name || currentUser.last_name || '',
           phone_number: profile.phone_number || '',
           location: profile.location || '',
         });
@@ -62,8 +65,8 @@ export default function OnboardingPage() {
             lga_id: profile.lga || null,
           });
         }
-        if (user.role === 'artisan') {
-          const artisan = await getMyArtisanProfile(token);
+        if (currentUser.role === 'artisan') {
+          const artisan = await getMyArtisanProfile(currentToken);
           setSelectedCategories(artisan.categories?.map((c: any) => c.id) || []);
         }
         const cats = await getCategories();
