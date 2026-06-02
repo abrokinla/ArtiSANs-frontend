@@ -4,3 +4,5 @@ node_modules/
 *.sqlite3
 hermes_conversation_20260512_130513.json
 .opencode/
+.env
+.env*.local

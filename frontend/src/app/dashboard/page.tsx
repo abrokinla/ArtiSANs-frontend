@@ -56,6 +56,11 @@ export default function DashboardPage() {
         const profileData = await getMyProfile(token!);
         setProfile(profileData);
 
+        if (!profileData.has_completed_onboarding) {
+          router.push('/onboarding');
+          return;
+        }
+
         const jobsData = await getMyJobs(token!);
         setJobs(jobsData);
 

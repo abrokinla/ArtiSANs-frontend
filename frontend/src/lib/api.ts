@@ -1,5 +1,41 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+let isRefreshing = false;
+let refreshPromise: Promise<string> | null = null;
+
+async function refreshAccessToken(): Promise<string> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refresh = localStorage.getItem('refresh');
+    if (!refresh) throw new Error('No refresh token');
+
+    const response = await fetch(`${API_URL}/token/refresh/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh }),
+    });
+
+    if (!response.ok) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh');
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('authChange'));
+      throw new Error('Session expired');
+    }
+
+    const data = await response.json();
+    localStorage.setItem('token', data.access);
+    return data.access;
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
 interface RequestOptions extends RequestInit {
   token?: string;
 }
@@ -16,14 +52,27 @@ async function apiRequest(endpoint: string, options: RequestOptions = {}) {
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
   
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  let response = await fetch(`${API_URL}${endpoint}`, {
     ...fetchOptions,
     headers,
   });
   
+  if (response.status === 401 && token) {
+    try {
+      const newToken = await refreshAccessToken();
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${newToken}`;
+      response = await fetch(`${API_URL}${endpoint}`, {
+        ...fetchOptions,
+        headers,
+      });
+    } catch {
+      throw new Error('Session expired. Please log in again.');
+    }
+  }
+  
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'An error occurred' }));
-    throw new Error(error.error || `HTTP ${response.status}`);
+    throw new Error(error.error || error.detail || `HTTP ${response.status}`);
   }
   
   return response.json();
@@ -537,5 +586,22 @@ export async function adminRefundWithdrawal(reference: string, token: string) {
     method: 'POST',
     token,
     body: JSON.stringify({ reference }),
+  });
+}
+
+// Account Deletion
+export async function deleteAccount(reason: string, token: string) {
+  return apiRequest('/profiles/delete_account/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reason }),
+  });
+}
+
+// Contact
+export async function sendContactMessage(data: { name: string; email: string; subject: string; message: string }) {
+  return apiRequest('/contact/', {
+    method: 'POST',
+    body: JSON.stringify(data),
   });
 }

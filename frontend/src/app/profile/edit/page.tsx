@@ -680,6 +680,20 @@ export default function EditProfilePage() {
             </button>
           </div>
         </form>
+
+        {/* Danger Zone */}
+        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">Danger Zone</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Once you delete your account, there is no going back. Please be certain.
+          </p>
+          <Link
+            href="/profile/delete"
+            className="inline-block px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+          >
+            Delete Account
+          </Link>
+        </div>
       </div>
     </main>
   );
