@@ -14,10 +14,11 @@ export default function MyJobsPage() {
   useEffect(() => {
     if (!authInitialized) return;
     if (!token || !user || user.role !== 'artisan') return;
+    const currentToken: string = token;
 
     async function load() {
       try {
-        const data = await getMyJobs(token);
+        const data = await getMyJobs(currentToken);
         const list = Array.isArray(data) ? data : data.results || [];
         setJobs(list.filter((j: any) => !['pending', 'bidding'].includes(j.status)));
       } catch (err) {
