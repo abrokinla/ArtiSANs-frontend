@@ -14,6 +14,7 @@ export const CATEGORY_GROUP_LABELS: Record<string, string> = {
 const CATEGORY_GROUP_ORDER = ['construction', 'cleaning', 'personal_care', 'home_services', 'tech', 'other'];
 
 export function groupCategories(categories: any[]) {
+  if (!Array.isArray(categories)) return [];
   const groups: Record<string, any[]> = {};
   for (const cat of categories) {
     const g = cat.group || 'other';

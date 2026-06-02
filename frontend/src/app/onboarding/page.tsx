@@ -72,7 +72,7 @@ export default function OnboardingPage() {
           setSelectedCategories(artisan.categories?.map((c: any) => c.id) || []);
         }
         const cats = await getCategories();
-        setAllCategories(cats);
+        setAllCategories(Array.isArray(cats) ? cats : []);
       } catch {
         // ignore
       } finally {
