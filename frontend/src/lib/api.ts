@@ -589,6 +589,15 @@ export async function adminRefundWithdrawal(reference: string, token: string) {
   });
 }
 
+// Admin Dispute Resolution
+export async function adminResolveDispute(disputeId: number, resolution: 'release' | 'refund' | 'partial', notes: string, token: string) {
+  return apiRequest('/profiles/admin_resolve_dispute/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ dispute_id: disputeId, resolution, notes }),
+  });
+}
+
 // Account Deletion
 export async function deleteAccount(reason: string, token: string) {
   return apiRequest('/profiles/delete_account/', {

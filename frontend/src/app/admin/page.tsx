@@ -30,6 +30,7 @@ export default function AdminOverviewPage() {
     { label: 'Active Jobs', value: data.active_jobs, color: 'text-blue-600 dark:text-blue-400' },
     { label: 'Total Jobs', value: data.total_jobs, color: 'text-gray-600 dark:text-gray-400' },
     { label: 'Active Disputes', value: data.active_disputes, color: 'text-red-600 dark:text-red-400' },
+    { label: 'Pending Withdrawals', value: data.pending_withdrawals ?? '—', color: 'text-orange-600 dark:text-orange-400' },
     { label: 'Total Users', value: data.total_users, color: 'text-gray-600 dark:text-gray-400' },
     { label: 'Artisans', value: data.total_artisans, color: 'text-amber-600 dark:text-amber-400' },
     { label: 'Clients', value: data.total_clients, color: 'text-green-600 dark:text-green-400' },

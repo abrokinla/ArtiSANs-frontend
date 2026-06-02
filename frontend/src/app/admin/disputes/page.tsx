@@ -2,22 +2,46 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getAdminDisputes } from '@/lib/api';
+import { getAdminDisputes, adminResolveDispute } from '@/lib/api';
 
 export default function AdminDisputesPage() {
   const { token } = useAuth();
   const [disputes, setDisputes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [resolveModal, setResolveModal] = useState<{ dispute: any } | null>(null);
+  const [notes, setNotes] = useState('');
+  const [resolving, setResolving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!token) return;
+    loadDisputes();
+  }, [token, statusFilter]);
+
+  const loadDisputes = () => {
     setLoading(true);
-    getAdminDisputes(token, { status: statusFilter || undefined })
+    getAdminDisputes(token!, { status: statusFilter || undefined })
       .then(setDisputes)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token, statusFilter]);
+  };
+
+  const handleResolve = async (resolution: 'release' | 'refund' | 'partial') => {
+    if (!resolveModal || !token) return;
+    setResolving(true);
+    setError('');
+    try {
+      await adminResolveDispute(resolveModal.dispute.id, resolution, notes, token);
+      setResolveModal(null);
+      setNotes('');
+      loadDisputes();
+    } catch (err: any) {
+      setError(err.message || 'Failed to resolve dispute');
+    } finally {
+      setResolving(false);
+    }
+  };
 
   const statuses = ['', 'pending', 'under_review', 'resolved'];
 
@@ -88,8 +112,59 @@ export default function AdminDisputesPage() {
                 {new Date(d.created_at).toLocaleString()}
                 {d.resolved_by_username && ` • Resolved by ${d.resolved_by_username}`}
               </div>
+              {d.status === 'pending' || d.status === 'under_review' ? (
+                <button
+                  onClick={() => setResolveModal({ dispute: d })}
+                  className="mt-3 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                >
+                  Resolve
+                </button>
+              ) : null}
             </div>
           ))}
+        </div>
+      )}
+
+      {resolveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Resolve Dispute — {resolveModal.dispute.job_title}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Choose how to resolve this dispute.
+            </p>
+            {error && <div className="bg-red-50 text-red-600 p-2 rounded mb-3 text-sm">{error}</div>}
+            <textarea
+              placeholder="Resolution notes (optional)"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleResolve('release')}
+                disabled={resolving}
+                className="flex-1 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
+              >
+                {resolving ? '...' : 'Release to Artisan'}
+              </button>
+              <button
+                onClick={() => handleResolve('refund')}
+                disabled={resolving}
+                className="flex-1 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+              >
+                {resolving ? '...' : 'Refund Client'}
+              </button>
+              <button
+                onClick={() => setResolveModal(null)}
+                className="py-2 px-3 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-700"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
