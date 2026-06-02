@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getAdminPendingDeposits, getAdminPaystackTransactions, adminConfirmDeposit, getAdminPendingWithdrawals, adminRetryWithdrawal, adminRefundWithdrawal } from '@/lib/api';
+import { getAdminPendingDeposits, getAdminPaystackTransactions, adminConfirmDeposit, getAdminPendingWithdrawals, adminRetryWithdrawal, adminRefundWithdrawal, adminConfirmWithdrawal } from '@/lib/api';
 
 export default function AdminDepositsPage() {
   const { token } = useAuth();
@@ -87,6 +87,22 @@ export default function AdminDepositsPage() {
       setWithdrawals(prev => prev.filter(w => w.reference !== reference));
     } catch (err: any) {
       setWithdrawalMsg(err.message || 'Failed to retry withdrawal');
+    } finally {
+      setWithdrawalAction(null);
+    }
+  };
+
+  const handleConfirmPaid = async (reference: string) => {
+    if (!token) return;
+    if (!confirm('Have you manually sent this amount to the artisan\'s bank account?')) return;
+    setWithdrawalAction(`confirm_${reference}`);
+    setWithdrawalMsg('');
+    try {
+      const result = await adminConfirmWithdrawal(reference, token);
+      setWithdrawalMsg(result.message || 'Withdrawal confirmed as paid');
+      setWithdrawals(prev => prev.filter(w => w.reference !== reference));
+    } catch (err: any) {
+      setWithdrawalMsg(err.message || 'Failed to confirm withdrawal');
     } finally {
       setWithdrawalAction(null);
     }
@@ -207,7 +223,7 @@ export default function AdminDepositsPage() {
         <div>
           {withdrawalMsg && (
             <div className={`mb-4 p-3 rounded-lg text-sm ${
-              withdrawalMsg.includes('refunded') || withdrawalMsg.includes('retried')
+              withdrawalMsg.includes('refunded') || withdrawalMsg.includes('retried') || withdrawalMsg.includes('confirmed')
                 ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300'
                 : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300'
             }`}>
@@ -248,6 +264,13 @@ export default function AdminDepositsPage() {
                       <p className="text-xs text-gray-400 mt-2">{new Date(w.created_at).toLocaleString()}</p>
                     </div>
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => handleConfirmPaid(w.reference)}
+                        disabled={withdrawalAction === `confirm_${w.reference}`}
+                        className="px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {withdrawalAction === `confirm_${w.reference}` ? 'Confirming...' : 'Mark as Paid'}
+                      </button>
                       <button
                         onClick={() => handleRetry(w.reference)}
                         disabled={withdrawalAction === `retry_${w.reference}`}

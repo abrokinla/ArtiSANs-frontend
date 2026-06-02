@@ -604,6 +604,14 @@ export async function adminRefundWithdrawal(reference: string, token: string) {
   });
 }
 
+export async function adminConfirmWithdrawal(reference: string, token: string) {
+  return apiRequest('/profiles/admin_confirm_withdrawal/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ reference }),
+  });
+}
+
 // Admin Dispute Resolution
 export async function adminResolveDispute(disputeId: number, resolution: 'release' | 'refund' | 'partial', notes: string, token: string) {
   return apiRequest('/profiles/admin_resolve_dispute/', {
