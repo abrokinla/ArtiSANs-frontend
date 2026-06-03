@@ -38,10 +38,11 @@ function CreateOfferForm() {
       router.push('/search');
       return;
     }
+    const artisanIdValue = artisanId;
     async function load() {
       try {
         const [artisanData, cats] = await Promise.all([
-          getArtisanProfilePublic(artisanId),
+          getArtisanProfilePublic(artisanIdValue),
           getCategories(),
         ]);
         setArtisan(artisanData);
