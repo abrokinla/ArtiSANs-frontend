@@ -644,6 +644,15 @@ export async function adminResolveDispute(disputeId: number, resolution: 'releas
   });
 }
 
+// Admin — Delete Users
+export async function adminDeleteUsers(userIds: number[], token: string) {
+  return apiRequest('/profiles/admin_delete_user/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ user_ids: userIds }),
+  });
+}
+
 // Account Deletion
 export async function deleteAccount(reason: string, token: string) {
   return apiRequest('/profiles/delete_account/', {
