@@ -10,6 +10,8 @@ interface User {
   last_name: string;
   role?: string;
   is_staff?: boolean;
+  email_verified?: boolean;
+  has_completed_onboarding?: boolean;
 }
 
 interface AuthContextType {

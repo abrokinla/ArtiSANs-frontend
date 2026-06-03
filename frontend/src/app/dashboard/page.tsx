@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getMyProfile, getMyJobs, getMyArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob, getWallet, boostProfile } from '@/lib/api';
+import { getMyProfile, getMyJobs, getMyArtisanProfile, uploadPortfolioImage, purchaseBids, verifyNIN, startJob, completeJob, getWallet, boostProfile, resendVerification } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 const BID_PRICING = [
@@ -561,6 +561,23 @@ export default function DashboardPage() {
                 <p className="text-gray-600 dark:text-gray-400 text-sm">Subscription</p>
                 <p className="font-medium capitalize">{profile.subscription_tier}</p>
               </div>
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Email Verification</p>
+                <p className="font-medium">
+                  {user?.email_verified || profile.email_verified ? (
+                    <span className="text-green-600 dark:text-green-400">✓ Verified</span>
+                  ) : (
+                    <span className="text-red-500">
+                      Not Verified
+                      {token && (
+                        <span className="ml-1">
+                          — <ResendVerificationLink token={token} />
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </p>
+              </div>
               {user.role === 'artisan' && (
                 <>
                   <div>
@@ -824,5 +841,33 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function ResendVerificationLink({ token }: { token: string }) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setSending(true);
+    try {
+      await resendVerification(token);
+      setSent(true);
+    } catch {
+      // ignore
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (sent) {
+    return <span className="text-blue-600 dark:text-blue-400 text-sm">Email sent!</span>;
+  }
+
+  return (
+    <button onClick={handleClick} disabled={sending} className="text-blue-600 dark:text-blue-400 underline text-sm hover:text-blue-800">
+      {sending ? 'Sending...' : 'Resend'}
+    </button>
   );
 }

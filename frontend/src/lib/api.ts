@@ -122,6 +122,21 @@ export async function confirmPasswordReset(data: { uid: string; token: string; n
   });
 }
 
+// Email Verification
+export async function verifyEmail(uid: string, token: string) {
+  return apiRequest('/auth/verify_email/', {
+    method: 'POST',
+    body: JSON.stringify({ uid, token }),
+  });
+}
+
+export async function resendVerification(token: string) {
+  return apiRequest('/auth/send_verification/', {
+    method: 'POST',
+    token,
+  });
+}
+
 // Categories
 export async function getCategories() {
   const data = await apiRequest('/categories/');

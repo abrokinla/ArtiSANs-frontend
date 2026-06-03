@@ -230,6 +230,9 @@ export default function OnboardingPage() {
                 )}
               </div>
               <p className="text-xs text-gray-400">You can always update these later from your profile settings.</p>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-700 dark:text-blue-300">
+                📧 We&apos;ve sent a verification email to <strong>{user?.email}</strong>. Please check your inbox and verify your email to unlock all features like posting jobs, bidding, and messaging.
+              </div>
             </div>
           )}
 
