@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -27,21 +27,36 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Defined outside component — stable, no closure issues
+const clearAuthStorage = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refresh');
+  localStorage.removeItem('user');
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [authInitialized, setAuthInitialized] = useState(false);
+  const isRefreshing = useRef(false); // prevent concurrent refresh calls
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const initAuth = async () => {
+      if (isRefreshing.current) return;
+      isRefreshing.current = true;
+
       const storedRefresh = localStorage.getItem('refresh');
       const storedToken = localStorage.getItem('token');
       const userStr = localStorage.getItem('user');
 
+      // Nothing stored — user is logged out
       if (!storedRefresh || !userStr) {
-        clearAuth();
+        setIsLoggedIn(false);
+        setToken(null);
+        setUser(null);
         setAuthInitialized(true);
+        isRefreshing.current = false;
         return;
       }
 
@@ -54,70 +69,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (response.ok) {
           const data = await response.json();
-          const newToken = data.access;
-
-          localStorage.setItem('token', newToken);
-          setIsLoggedIn(true);
-          setToken(newToken);
+          localStorage.setItem('token', data.access);
+          setToken(data.access);
           setUser(JSON.parse(userStr));
+          setIsLoggedIn(true);
         } else {
-          clearAuth();
+          // Server rejected the refresh token — genuine expiry
+          clearAuthStorage();
+          setIsLoggedIn(false);
+          setToken(null);
+          setUser(null);
         }
       } catch {
-        // Network failure — trust localStorage, don't wipe valid sessions
+        // Network error — trust what's in localStorage
         if (storedToken && userStr) {
-          setIsLoggedIn(true);
           setToken(storedToken);
           setUser(JSON.parse(userStr));
+          setIsLoggedIn(true);
         } else {
-          clearAuth();
+          setIsLoggedIn(false);
+          setToken(null);
+          setUser(null);
         }
       } finally {
         setAuthInitialized(true);
+        isRefreshing.current = false;
       }
     };
 
-    const clearAuth = () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh');
-      localStorage.removeItem('user');
-      setIsLoggedIn(false);
-      setToken(null);
-      setUser(null);
+    initAuth();
+
+    // Only sync logout/login across tabs — don't re-run full refresh
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token' && !e.newValue) {
+        // Token was removed in another tab — log out here too
+        setIsLoggedIn(false);
+        setToken(null);
+        setUser(null);
+      } else if (e.key === 'token' && e.newValue) {
+        // Token was set in another tab — sync login state
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          setToken(e.newValue);
+          setUser(JSON.parse(userStr));
+          setIsLoggedIn(true);
+        }
+      }
     };
 
-    checkAuth();
-
-    const handleStorageChange = () => checkAuth();
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('authChange', handleStorageChange);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('authChange', handleStorageChange);
     };
   }, []);
 
-  const login = (token: string, refresh: string, user: User) => {
-    localStorage.setItem('token', token);
+  const login = (newToken: string, refresh: string, newUser: User) => {
+    localStorage.setItem('token', newToken);
     localStorage.setItem('refresh', refresh);
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('user', JSON.stringify(newUser));
+    // Set state directly — no need to re-run checkAuth
+    setToken(newToken);
+    setUser(newUser);
     setIsLoggedIn(true);
-    setToken(token);
-    setUser(user);
     setAuthInitialized(true);
-    window.dispatchEvent(new Event('authChange'));
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh');
-    localStorage.removeItem('user');
+    clearAuthStorage();
     setIsLoggedIn(false);
     setToken(null);
     setUser(null);
-    setAuthInitialized(true);
-    window.dispatchEvent(new Event('authChange'));
   };
 
   return (
