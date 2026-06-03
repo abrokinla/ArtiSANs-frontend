@@ -109,14 +109,14 @@ export async function login(credentials: { username: string; password: string })
 
 // Password Reset
 export async function requestPasswordReset(email: string) {
-  return apiRequest('/auth/password-reset/', {
+  return apiRequest('/auth/password_reset/', {
     method: 'POST',
     body: JSON.stringify({ email }),
   });
 }
 
 export async function confirmPasswordReset(data: { uid: string; token: string; new_password: string }) {
-  return apiRequest('/auth/password-reset/confirm/', {
+  return apiRequest('/auth/password_reset_confirm/', {
     method: 'POST',
     body: JSON.stringify(data),
   });
