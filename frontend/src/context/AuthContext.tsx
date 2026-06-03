@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface User {
   id: number;
   username: string;
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const response = await fetch('/api/token/refresh/', {
+        const response = await fetch(`${API_URL}/token/refresh/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh: storedRefresh }),
