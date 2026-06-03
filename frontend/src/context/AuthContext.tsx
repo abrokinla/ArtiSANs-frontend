@@ -34,10 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       const storedRefresh = localStorage.getItem('refresh');
+      const storedToken = localStorage.getItem('token');
       const userStr = localStorage.getItem('user');
 
       if (!storedRefresh || !userStr) {
         clearAuth();
+        setAuthInitialized(true);
         return;
       }
 
@@ -60,7 +62,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           clearAuth();
         }
       } catch {
-        clearAuth();
+        // Network failure — trust localStorage, don't wipe valid sessions
+        if (storedToken && userStr) {
+          setIsLoggedIn(true);
+          setToken(storedToken);
+          setUser(JSON.parse(userStr));
+        } else {
+          clearAuth();
+        }
       } finally {
         setAuthInitialized(true);
       }
