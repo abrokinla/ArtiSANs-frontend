@@ -32,29 +32,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
-    // Check auth state on mount and listen for storage changes
-    const checkAuth = () => {
-      const storedToken = localStorage.getItem('token');
+    const checkAuth = async () => {
+      const storedRefresh = localStorage.getItem('refresh');
       const userStr = localStorage.getItem('user');
-      if (storedToken && userStr) {
-        setIsLoggedIn(true);
-        setToken(storedToken);
-        try {
-          setUser(JSON.parse(userStr));
-        } catch {
-          setUser(null);
-        }
-      } else {
-        setIsLoggedIn(false);
-        setToken(null);
-        setUser(null);
+
+      if (!storedRefresh || !userStr) {
+        clearAuth();
+        return;
       }
-      setAuthInitialized(true);
+
+      try {
+        const response = await fetch('/api/token/refresh/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh: storedRefresh }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const newToken = data.access;
+
+          localStorage.setItem('token', newToken);
+          setIsLoggedIn(true);
+          setToken(newToken);
+          setUser(JSON.parse(userStr));
+        } else {
+          clearAuth();
+        }
+      } catch {
+        clearAuth();
+      } finally {
+        setAuthInitialized(true);
+      }
+    };
+
+    const clearAuth = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh');
+      localStorage.removeItem('user');
+      setIsLoggedIn(false);
+      setToken(null);
+      setUser(null);
     };
 
     checkAuth();
 
-    // Listen for storage events (cross-tab sync) and custom auth events
     const handleStorageChange = () => checkAuth();
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('authChange', handleStorageChange);
@@ -73,7 +95,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(token);
     setUser(user);
     setAuthInitialized(true);
-    // Dispatch custom event to notify other components
     window.dispatchEvent(new Event('authChange'));
   };
 
@@ -85,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
     setAuthInitialized(true);
-    // Dispatch custom event
     window.dispatchEvent(new Event('authChange'));
   };
 

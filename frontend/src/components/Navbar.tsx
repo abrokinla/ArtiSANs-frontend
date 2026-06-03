@@ -8,12 +8,14 @@ import { useTheme } from '@/context/ThemeContext';
 import { getMyProfile, getUnreadCount } from '@/lib/api';
 
 export default function Navbar() {
-  const { isLoggedIn, user, logout, token } = useAuth();
+  const { isLoggedIn, user, logout, token, authInitialized } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [bidsRemaining, setBidsRemaining] = useState<number | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  if (!authInitialized) return null;
 
   useEffect(() => {
     if (isLoggedIn && user?.role === 'artisan' && token) {
