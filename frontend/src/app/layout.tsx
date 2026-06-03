@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import ProfileCompletionBanner from '@/components/ProfileCompletionBanner'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { AuthProvider } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 
@@ -48,9 +49,11 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <ServiceWorkerRegister />
-            <Navbar />
-            <ProfileCompletionBanner />
-            <main>{children}</main>
+            <ErrorBoundary>
+              <Navbar />
+              <ProfileCompletionBanner />
+              <main>{children}</main>
+            </ErrorBoundary>
             <footer className="bg-white dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 py-12 mt-16 transition-colors">
               <div className="container mx-auto px-4">
                 <div className="flex flex-wrap justify-center gap-6 mb-4 text-sm">

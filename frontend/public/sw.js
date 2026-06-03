@@ -1,5 +1,5 @@
-const CACHE_NAME = 'artisans-cache-v1';
-const STATIC_ASSETS = ['/', '/auth', '/jobs', '/search', '/terms'];
+const CACHE_NAME = 'artisans-cache-v2';
+const STATIC_ASSETS = ['/auth', '/jobs', '/search', '/terms'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -20,12 +20,27 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (event.request.url.includes('/api/')) return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-      return caches.open(CACHE_NAME).then((cache) => {
-        cache.put(event.request, response.clone());
-        return response;
-      });
-    })).catch(() => new Response('', { status: 503 }))
-  );
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, response.clone());
+            return response;
+          });
+        })
+        .catch(() => caches.match(event.request))
+        .catch(() => new Response('', { status: 503 }))
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, response.clone());
+          return response;
+        });
+      })).catch(() => new Response('', { status: 503 }))
+    );
+  }
 });

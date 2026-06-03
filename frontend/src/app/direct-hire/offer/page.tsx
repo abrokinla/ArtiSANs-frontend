@@ -10,7 +10,7 @@ function CreateOfferForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, token, authInitialized } = useAuth();
-  const artisanId = searchParams.get('artisan');
+  const artisanId = searchParams?.get('artisan');
 
   const [artisan, setArtisan] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);

@@ -8,8 +8,8 @@ import { confirmPasswordReset } from '@/lib/api';
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const uid = searchParams.get('uid');
-  const token = searchParams.get('token');
+  const uid = searchParams?.get('uid');
+  const token = searchParams?.get('token');
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

@@ -7,7 +7,7 @@ import { getOffer, acceptOffer, declineOffer, counterOffer, acceptCounterOffer }
 import { useAuth } from '@/context/AuthContext';
 
 export default function OfferDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams() ?? {};
   const router = useRouter();
   const { user, token, authInitialized } = useAuth();
 

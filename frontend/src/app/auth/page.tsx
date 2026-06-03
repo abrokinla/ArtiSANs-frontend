@@ -9,7 +9,7 @@ import PasswordStrength from '@/components/PasswordStrength';
 
 function AuthForm() {
   const searchParams = useSearchParams();
-  const resetSuccess = searchParams.get('reset') === 'success';
+  const resetSuccess = searchParams?.get('reset') === 'success';
 
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({

@@ -10,8 +10,8 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, token, login: authLogin } = useAuth();
-  const uid = searchParams.get('uid');
-  const tokenParam = searchParams.get('token');
+  const uid = searchParams?.get('uid');
+  const tokenParam = searchParams?.get('token');
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState('');

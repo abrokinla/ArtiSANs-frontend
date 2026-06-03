@@ -15,8 +15,6 @@ export default function Navbar() {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  if (!authInitialized) return null;
-
   useEffect(() => {
     if (isLoggedIn && user?.role === 'artisan' && token) {
       let cancelled = false;
@@ -119,7 +117,7 @@ export default function Navbar() {
               )}
             </button>
 
-            {isLoggedIn ? (
+            {authInitialized && isLoggedIn ? (
               <>
                 {user?.role === 'artisan' && bidsRemaining !== null && (
                   <Link

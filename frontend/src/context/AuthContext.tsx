@@ -46,9 +46,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (isRefreshing.current) return;
       isRefreshing.current = true;
 
-      const storedRefresh = localStorage.getItem('refresh');
-      const storedToken = localStorage.getItem('token');
-      const userStr = localStorage.getItem('user');
+      let storedRefresh: string | null = null;
+      let storedToken: string | null = null;
+      let userStr: string | null = null;
+      try {
+        storedRefresh = localStorage.getItem('refresh');
+        storedToken = localStorage.getItem('token');
+        userStr = localStorage.getItem('user');
+      } catch {
+        /* localStorage unavailable — treat as logged out */
+      }
 
       // Nothing stored — user is logged out
       if (!storedRefresh || !userStr) {
@@ -71,7 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           localStorage.setItem('token', data.access);
           setToken(data.access);
-          setUser(JSON.parse(userStr));
+          try {
+            setUser(JSON.parse(userStr));
+          } catch {
+            setUser(null);
+          }
           setIsLoggedIn(true);
         } else {
           // Server rejected the refresh token — genuine expiry
@@ -84,7 +95,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Network error — trust what's in localStorage
         if (storedToken && userStr) {
           setToken(storedToken);
-          setUser(JSON.parse(userStr));
+          try {
+            setUser(JSON.parse(userStr));
+          } catch {
+            setUser(null);
+          }
           setIsLoggedIn(true);
         } else {
           setIsLoggedIn(false);
@@ -97,7 +112,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    initAuth();
+    initAuth().catch(() => {
+      setAuthInitialized(true);
+      isRefreshing.current = false;
+    });
 
     // Only sync logout/login across tabs — don't re-run full refresh
     const handleStorageChange = (e: StorageEvent) => {
@@ -108,11 +126,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       } else if (e.key === 'token' && e.newValue) {
         // Token was set in another tab — sync login state
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-          setToken(e.newValue);
-          setUser(JSON.parse(userStr));
-          setIsLoggedIn(true);
+        try {
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            setToken(e.newValue);
+            setUser(JSON.parse(userStr));
+            setIsLoggedIn(true);
+          }
+        } catch {
+          /* ignore parse errors */
         }
       }
     };
