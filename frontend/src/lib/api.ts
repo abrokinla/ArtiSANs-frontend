@@ -660,3 +660,57 @@ export async function sendContactMessage(data: { name: string; email: string; su
     body: JSON.stringify(data),
   });
 }
+
+// Direct Hire Offers
+export async function createOffer(offerData: {
+  artisan: number;
+  title: string;
+  description?: string;
+  category?: number;
+  location?: string;
+  proposed_amount: number;
+  client_message?: string;
+}, token: string) {
+  return apiRequest('/direct-hire/offers/', {
+    method: 'POST',
+    token,
+    body: JSON.stringify(offerData),
+  });
+}
+
+export async function getMyOffers(token: string) {
+  return apiRequest('/direct-hire/offers/', { token });
+}
+
+export async function getOffer(id: string, token: string) {
+  return apiRequest(`/direct-hire/offers/${id}/`, { token });
+}
+
+export async function acceptOffer(id: string, token: string) {
+  return apiRequest(`/direct-hire/offers/${id}/accept/`, {
+    method: 'POST',
+    token,
+  });
+}
+
+export async function declineOffer(id: string, token: string) {
+  return apiRequest(`/direct-hire/offers/${id}/decline/`, {
+    method: 'POST',
+    token,
+  });
+}
+
+export async function counterOffer(id: string, data: { counter_amount: number; artisan_message?: string }, token: string) {
+  return apiRequest(`/direct-hire/offers/${id}/counter/`, {
+    method: 'POST',
+    token,
+    body: JSON.stringify(data),
+  });
+}
+
+export async function acceptCounterOffer(id: string, token: string) {
+  return apiRequest(`/direct-hire/offers/${id}/accept_counter/`, {
+    method: 'POST',
+    token,
+  });
+}

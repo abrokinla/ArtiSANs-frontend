@@ -133,6 +133,9 @@ export default function Navbar() {
                 <Link href="/dashboard" className="text-sm font-medium hidden sm:block transition-colors hover:text-rausch" style={{ color: 'var(--color-text-secondary)' }}>
                   Dashboard
                 </Link>
+                <Link href="/direct-hire/offers" className="text-sm font-medium hidden sm:block transition-colors hover:text-rausch" style={{ color: 'var(--color-text-secondary)' }}>
+                  Offers
+                </Link>
                 <Link href="/profile/edit" className="text-sm font-medium hidden sm:block transition-colors hover:text-rausch" style={{ color: 'var(--color-text-secondary)' }}>
                   Profile
                 </Link>
@@ -199,11 +202,14 @@ export default function Navbar() {
             {isLoggedIn && (
               <Link href="/dashboard" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Dashboard</Link>
             )}
-            {isLoggedIn && (
-              <Link href="/messages" className="block px-2 py-2 text-sm rounded relative" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>
-                Messages{unreadCount > 0 && ` (${unreadCount})`}
-              </Link>
-            )}
+          {isLoggedIn && (
+            <Link href="/messages" className="block px-2 py-2 text-sm rounded relative" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>
+              Messages{unreadCount > 0 && ` (${unreadCount})`}
+            </Link>
+          )}
+          {isLoggedIn && (
+            <Link href="/direct-hire/offers" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Offers</Link>
+          )}
             {isLoggedIn && (
               <Link href="/wallet" className="block px-2 py-2 text-sm rounded" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--color-text-secondary)' }}>Wallet</Link>
             )}
