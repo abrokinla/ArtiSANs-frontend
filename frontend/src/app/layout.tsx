@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import ProfileCompletionBanner from '@/components/ProfileCompletionBanner'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { AuthProvider } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 
@@ -34,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <GoogleAnalytics />
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/logo.png" type="image/png" sizes="1408x768" />
         <link rel="manifest" href="/manifest.json" />
