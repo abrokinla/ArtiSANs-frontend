@@ -44,12 +44,9 @@ The platform manages the complete job lifecycle — from posting and bidding thr
 
 **Phase 1** launches in **Lagos, Nigeria** as a beta, with plans for nationwide expansion.
 
-### Repositories
+### Repository
 
-| Component | Repository |
-|-----------|-----------|
-| Frontend (this repo) | [github.com/abrokinla/ArtiSANs-frontend](https://github.com/abrokinla/ArtiSANs-frontend) |
-| Backend API | [github.com/abrokinla/ArtiSANs](https://github.com/abrokinla/ArtiSANs) |
+[github.com/abrokinla/ArtiSANs-frontend](https://github.com/abrokinla/ArtiSANs-frontend)
 
 ### Live Site
 
@@ -88,6 +85,12 @@ The platform manages the complete job lifecycle — from posting and bidding thr
 - **Responsive Design** — Mobile-first layout works seamlessly across all devices
 - **Image Uploads** — Drag-and-drop profile pictures and job images via Cloudinary integration
 - **Tab-Sync Auth** — Authentication state synchronises across open browser tabs
+- **Real-Time Messaging** — In-app messaging between clients and assigned artisans with polling
+- **Wallet & Payments** — Deposit (Paystack), withdrawals, escrow for job funds
+- **Direct Hire** — Skip the bidding process and hire artisans directly
+- **Admin Dashboard** — User management, job oversight, dispute resolution, deposit/withdrawal approval
+- **Email Notifications** — Account verification, job assignment, payment confirmations via Resend
+- **Dark Mode** — Full theme support with persisted preference
 
 ---
 
@@ -165,14 +168,36 @@ The platform manages the complete job lifecycle — from posting and bidding thr
 |-------|------|--------|-------------|
 | `/` | Home | Public | Hero section, category grid, featured jobs & artisans |
 | `/auth` | Login / Register | Public | Toggle form for sign-in and account creation |
+| `/auth/forgot-password` | Forgot Password | Public | Request password reset email |
+| `/auth/reset-password` | Reset Password | Public | Confirm password reset with token |
+| `/auth/verify-email` | Verify Email | Public | Email verification after registration |
 | `/search` | Browse Artisans | Public | Filterable artisan discovery with search |
 | `/artisans/[id]` | Artisan Profile | Public | Detailed profile, reviews, and contact info |
 | `/jobs` | Job Listings | Public | Browse open jobs available for bidding |
 | `/jobs/[id]` | Job Detail | Authenticated | Full job view with bidding, workflow, and reviews |
+| `/jobs/[id]/manage` | Manage Job | Authenticated | Job management with progress tracking, disputes |
+| `/jobs/my-jobs` | My Jobs | Artisan only | Jobs assigned to or bid on by the artisan |
 | `/jobs/post` | Post a Job | Client only | Multi-field job creation form with image upload |
 | `/dashboard` | Dashboard | Authenticated | Role-based dashboard with stats, active jobs, quick actions |
 | `/dashboard/my-bids` | My Bids | Artisan only | List of bids the artisan has submitted |
 | `/profile/edit` | Edit Profile | Authenticated | Profile editing with drag-and-drop photo upload |
+| `/profile/delete` | Delete Account | Authenticated | Request account deletion |
+| `/wallet` | Wallet | Authenticated | Balance, deposits, withdrawals, transaction history |
+| `/messages` | Messages | Authenticated | Conversation list with unread counts |
+| `/messages/[id]` | Conversation | Authenticated | Real-time messaging with polling |
+| `/direct-hire/offer` | Direct Hire | Client | Hire an artisan directly without bidding |
+| `/direct-hire/offers` | My Offers | Authenticated | Sent/received direct hire offers |
+| `/direct-hire/offers/[id]` | Offer Detail | Authenticated | Negotiate, counter, accept/decline offers |
+| `/onboarding` | Onboarding | Artisan only | Initial profile setup after registration |
+| `/contact` | Contact | Public | Submit support inquiries |
+| `/terms` | Terms of Service | Public | Legal terms |
+| `/privacy` | Privacy Policy | Public | Privacy policy |
+| `/admin` | Admin Dashboard | Staff only | Platform overview with stats |
+| `/admin/users` | Admin Users | Staff only | User list with search, filter, and delete |
+| `/admin/jobs` | Admin Jobs | Staff only | All platform jobs with status filter |
+| `/admin/disputes` | Admin Disputes | Staff only | Dispute resolution dashboard |
+| `/admin/deposits` | Admin Deposits | Staff only | Pending deposit approvals |
+| `/admin/finances` | Admin Finances | Staff only | Transaction audit and withdrawal management |
 
 ---
 
@@ -269,25 +294,69 @@ Key deployment configuration files:
 
 ```
 frontend/
-├── public/                          # Static assets (SVG icons)
+├── public/                          # Static assets (SW, manifest, favicon, icons)
 ├── src/
 │   ├── app/                         # Next.js App Router
-│   │   ├── layout.tsx               # Root layout — Navbar, AuthProvider, footer
+│   │   ├── layout.tsx               # Root layout — providers, navbar, footer
 │   │   ├── page.tsx                 # Homepage — hero, categories, featured content
 │   │   ├── globals.css              # Global CSS — Airbnb-inspired design system
+│   │   ├── error.tsx                # Error boundary
+│   │   ├── loading.tsx              # Global loading state
+│   │   ├── not-found.tsx            # 404 page
+│   │   ├── admin/                   # Admin dashboard (staff only)
+│   │   │   ├── layout.tsx           # Admin sidebar layout
+│   │   │   ├── page.tsx             # Overview stats
+│   │   │   ├── users/page.tsx       # User management with delete
+│   │   │   ├── jobs/page.tsx        # All jobs oversight
+│   │   │   ├── disputes/page.tsx    # Dispute resolution
+│   │   │   ├── deposits/page.tsx    # Pending deposit approvals
+│   │   │   └── finances/page.tsx    # Transactions & withdrawals
 │   │   ├── artisans/[id]/page.tsx   # Artisan profile detail
-│   │   ├── auth/page.tsx            # Login / Register page
+│   │   ├── auth/
+│   │   │   ├── page.tsx             # Login / Register
+│   │   │   ├── forgot-password/page.tsx
+│   │   │   ├── reset-password/page.tsx
+│   │   │   └── verify-email/page.tsx
+│   │   ├── contact/page.tsx         # Support form
 │   │   ├── dashboard/
-│   │   │   ├── page.tsx             # User dashboard
+│   │   │   ├── page.tsx             # Role-based user dashboard
 │   │   │   └── my-bids/page.tsx     # Artisan's submitted bids
+│   │   ├── direct-hire/
+│   │   │   ├── offer/page.tsx       # Create direct hire offer
+│   │   │   ├── offers/page.tsx      # List sent/received offers
+│   │   │   └── offers/[id]/page.tsx # Offer detail & negotiation
 │   │   ├── jobs/
 │   │   │   ├── page.tsx             # Browse open jobs
 │   │   │   ├── [id]/page.tsx        # Job detail + bid workflow
-│   │   │   └── post/page.tsx        # Post a new job
-│   │   ├── profile/edit/page.tsx    # Edit profile
-│   │   └── search/page.tsx          # Browse & search artisans
+│   │   │   ├── [id]/manage/page.tsx # Job management (progress, disputes)
+│   │   │   ├── my-jobs/page.tsx     # Artisan's assigned jobs
+│   │   │   └── post/page.tsx        # Create a new job
+│   │   ├── messages/
+│   │   │   ├── page.tsx             # Conversation list
+│   │   │   └── [id]/page.tsx        # Conversation with real-time polling
+│   │   ├── onboarding/page.tsx      # Artisan initial profile setup
+│   │   ├── privacy/page.tsx         # Privacy policy
+│   │   ├── profile/
+│   │   │   ├── edit/page.tsx        # Edit profile
+│   │   │   └── delete/page.tsx      # Request account deletion
+│   │   ├── search/page.tsx          # Browse & search artisans
+│   │   ├── terms/page.tsx           # Terms of service
+│   │   └── wallet/page.tsx          # Wallet, deposits, withdrawals
 │   ├── components/
 │   │   ├── Navbar.tsx               # Role-aware navigation bar
+│   │   ├── ErrorBoundary.tsx        # React error boundary with retry
+│   │   ├── ProfileCompletionBanner.tsx # Prompt to complete artisan profile
+│   │   ├── ServiceWorkerRegister.tsx # Registers service worker for offline/cache
+│   │   ├── PasswordStrength.tsx     # Password strength indicator
+│   │   ├── ProgressSteps.tsx        # Multi-step progress indicator
+│   │   ├── CategorySelect.tsx       # Category dropdown with API data
+│   │   ├── LocationSelect.tsx       # State/LGA cascading dropdown
+│   │   ├── messages/
+│   │   │   ├── MessageInput.tsx     # Message compose input
+│   │   │   ├── ChatBubble.tsx       # Individual message bubble
+│   │   │   └── ConversationList.tsx # Conversation sidebar
+│   │   ├── hire/
+│   │   │   └── HireModal.tsx        # Direct hire modal
 │   │   ├── jobs/
 │   │   │   ├── BidList.tsx          # Bid list with accept controls
 │   │   │   └── PlaceBidForm.tsx     # Bid placement form
@@ -295,12 +364,13 @@ frontend/
 │   │       ├── ReviewList.tsx       # Review display component
 │   │       └── SubmitReviewForm.tsx # Star rating + comment form
 │   ├── context/
-│   │   └── AuthContext.tsx          # Auth state management
+│   │   ├── AuthContext.tsx          # Auth state management (JWT, login/logout)
+│   │   └── ThemeContext.tsx         # Light/dark theme with persistence
 │   └── lib/
-│       └── api.ts                   # API client (22 endpoints)
+│       └── api.ts                   # API client (50+ endpoints)
 ├── next.config.js                   # Next.js configuration
 ├── tailwind.config.js               # Tailwind CSS configuration
-├── tsconfig.json                    # TypeScript configuration
+├── tsconfig.json                    # TypeScript strict mode config
 ├── open-next.config.ts              # OpenNext Cloudflare adapter config
 ├── wrangler.toml                    # Cloudflare Pages config
 ├── postcss.config.js                # PostCSS configuration (Tailwind + Autoprefixer)
@@ -379,7 +449,7 @@ On 401 response ──►  automatic token refresh via /api/token/refresh/
 
 ## API Overview
 
-The frontend communicates with a **Django REST Framework** backend. Below is a summary of all API endpoints used:
+The frontend communicates with a **Django REST Framework** backend (hosted on Render).
 
 ### Authentication
 
@@ -388,27 +458,39 @@ The frontend communicates with a **Django REST Framework** backend. Below is a s
 | POST | `/auth/register/` | Create new account |
 | POST | `/auth/login/` | Sign in, receive JWT tokens |
 | POST | `/token/refresh/` | Refresh expired access token |
+| POST | `/auth/password_reset/` | Request password reset email |
+| POST | `/auth/password_reset_confirm/` | Confirm password reset |
+| POST | `/auth/verify_email/` | Verify email address |
+| POST | `/auth/send_verification/` | Resend verification email |
 
 ### Jobs
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/jobs/` | List all open jobs |
+| GET | `/jobs/` | List open jobs (role-aware) |
 | POST | `/jobs/` | Create a new job |
 | GET | `/jobs/:id/` | Get job details |
-| GET | `/jobs/my_jobs/` | List current user's jobs |
+| GET | `/jobs/:id/public/` | Public job detail |
+| GET | `/jobs/my_jobs/` | Current user's jobs (scoped to involvement) |
 | POST | `/jobs/upload_image/` | Upload job images |
-| POST | `/jobs/:id/start_job/` | Artisan starts job |
+| POST | `/jobs/:id/bid/` | Artisan places a bid |
+| POST | `/jobs/:id/start_job/` | Artisan starts work |
 | POST | `/jobs/:id/complete_job/` | Artisan marks complete |
-| POST | `/jobs/:id/confirm_completion/` | Client confirms completion |
+| POST | `/jobs/:id/confirm_completion/` | Client confirms, releases payment |
+| POST | `/jobs/:id/cancel_job/` | Cancel an active job |
+| POST | `/jobs/:id/dispute/` | Raise a dispute |
+| GET | `/jobs/:id/dispute_detail/` | Get dispute details |
+| POST | `/jobs/:id/assign/` | Assign artisan (direct hire) |
+| POST | `/jobs/direct_hire/` | Create job with direct hire |
+| POST | `/jobs/:id/fund_escrow/` | Fund escrow for job |
+| POST | `/jobs/:id/verify_escrow/` | Verify escrow payment |
 
 ### Bids
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/jobs/:id/bid/` | Place a bid on a job |
-| GET | `/bids/my_bids/` | List current user's bids |
-| GET | `/bids/job_bids/` | List bids for a specific job |
+| GET | `/bids/my_bids/` | Artisan's submitted bids |
+| GET | `/bids/job_bids/` | Bids for a specific job |
 | POST | `/bids/:id/accept/` | Client accepts a bid |
 
 ### Artisans & Profiles
@@ -416,10 +498,18 @@ The frontend communicates with a **Django REST Framework** backend. Below is a s
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/search/artisans/` | Search and filter artisans |
-| GET | `/artisans/:id/profile/` | Get artisan's public profile |
-| GET | `/artisans/me/` | Get current artisan's profile |
-| GET/PUT | `/profiles/me/` | Get or update current user's profile |
+| GET | `/artisans/:id/public/` | Public artisan profile |
+| GET | `/artisans/:id/profile/` | Full artisan profile (authenticated) |
+| GET | `/artisans/me/` | Current artisan's profile |
+| PATCH | `/artisans/me/` | Update artisan profile |
+| POST | `/artisans/verify_nin/` | NIN identity verification |
+| POST | `/artisans/boost/` | Boost profile visibility |
+| POST | `/artisans/purchase_bids/` | Purchase bid credits |
+| POST | `/artisans/upload_portfolio_image/` | Upload portfolio image |
+| GET | `/profiles/me/` | Get current user profile |
+| PATCH | `/profiles/me/` | Update user profile |
 | POST | `/profiles/upload_image/` | Upload profile picture |
+| POST | `/profiles/delete_account/` | Self-delete account (anonymize) |
 
 ### Reviews & Categories
 
@@ -427,9 +517,75 @@ The frontend communicates with a **Django REST Framework** backend. Below is a s
 |--------|----------|-------------|
 | POST | `/reviews/` | Submit a review |
 | GET | `/reviews/for_artisan/` | List reviews for an artisan |
-| GET | `/categories/` | List all job categories |
+| GET | `/categories/` | List all categories |
 
-> **Note:** Full API documentation is available in the [backend repository](https://github.com/abrokinla/ArtiSANs).
+### Wallet & Payments
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/profiles/wallet/` | Get wallet balance and history |
+| POST | `/profiles/deposit/` | Initiate deposit |
+| POST | `/profiles/verify_deposit/` | Verify Paystack deposit |
+| POST | `/profiles/report_failed_deposit/` | Report failed deposit |
+| POST | `/profiles/withdraw/` | Request withdrawal |
+| GET | `/profiles/bank/` | Get saved bank details |
+| PUT | `/profiles/bank/` | Save bank account details |
+| GET | `/profiles/banks/` | List supported banks |
+| POST | `/profiles/resolve_account/` | Verify account number |
+
+### Messages
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/conversations/` | List conversations |
+| GET | `/conversations/:id/` | Get conversation detail |
+| GET | `/conversations/:id/messages/` | Get messages (with polling) |
+| POST | `/conversations/:id/messages/` | Send a message |
+| GET | `/conversations/unread/` | Get unread message count |
+
+### Direct Hire Offers
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/direct-hire/offers/` | Create an offer |
+| GET | `/direct-hire/offers/` | List my offers |
+| GET | `/direct-hire/offers/:id/` | Get offer detail |
+| POST | `/direct-hire/offers/:id/accept/` | Accept offer |
+| POST | `/direct-hire/offers/:id/decline/` | Decline offer |
+| POST | `/direct-hire/offers/:id/counter/` | Counter-offer |
+| POST | `/direct-hire/offers/:id/accept_counter/` | Accept counter-offer |
+
+### Locations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/locations/states/` | List all states |
+| GET | `/locations/lgas/` | List LGAs for a state |
+
+### Admin (staff only)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/profiles/admin_dashboard/` | Overview stats |
+| GET | `/profiles/admin_users/` | List all users |
+| POST | `/profiles/admin_delete_user/` | Batch delete users (anonymize) |
+| GET | `/profiles/admin_jobs/` | List all jobs |
+| GET | `/profiles/admin_disputes/` | List disputes |
+| GET | `/profiles/admin_transactions/` | List transactions |
+| GET | `/profiles/admin_pending_deposits/` | Pending deposit approvals |
+| POST | `/profiles/admin_confirm_deposit/` | Approve deposit |
+| GET | `/profiles/admin_pending_withdrawals/` | Pending withdrawal requests |
+| POST | `/profiles/admin_retry_withdrawal/` | Retry failed withdrawal |
+| POST | `/profiles/admin_confirm_withdrawal/` | Confirm manual withdrawal |
+| POST | `/profiles/admin_refund_withdrawal/` | Refund to wallet |
+| GET | `/profiles/admin_paystack_transactions/` | Paystack audit log |
+| POST | `/profiles/admin_resolve_dispute/` | Resolve a dispute |
+
+### Other
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/contact/` | Submit contact form |
 
 ---
 
@@ -485,6 +641,5 @@ This project is licensed under the **ISC License**. See the [LICENSE](LICENSE) f
 
 | Resource | Link |
 |----------|------|
-| Frontend Repository | [github.com/abrokinla/ArtiSANs-frontend](https://github.com/abrokinla/ArtiSANs-frontend) |
-| Backend Repository | [github.com/abrokinla/ArtiSANs](https://github.com/abrokinla/ArtiSANs) |
+| Repository | [github.com/abrokinla/ArtiSANs-frontend](https://github.com/abrokinla/ArtiSANs-frontend) |
 | Live Application | [artisans-ng.abrokinla.workers.dev](https://artisans-ng.abrokinla.workers.dev) |
