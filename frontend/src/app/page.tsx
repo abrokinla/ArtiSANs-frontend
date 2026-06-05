@@ -1,6 +1,6 @@
 'use client';
 
-import { getCategories, searchArtisans, getJobs } from '@/lib/api';
+import { getCategories, searchArtisans, getFeaturedJobs } from '@/lib/api';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -21,10 +21,9 @@ export default function Home() {
         const artisanList = Array.isArray(artisans) ? artisans : artisans.results || [];
         setFeaturedArtisans(artisanList.slice(0, 6));
 
-        // Get featured jobs (open/bidding)
-        const jobs = await getJobs({ status: 'bidding' });
-        const jobList = Array.isArray(jobs) ? jobs : jobs.results || [];
-        setFeaturedJobs(jobList.slice(0, 6));
+        // Get featured jobs
+        const jobs = await getFeaturedJobs();
+        setFeaturedJobs(Array.isArray(jobs) ? jobs.slice(0, 6) : []);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -146,7 +145,7 @@ export default function Home() {
                       </div>
                       {job.budget && (
                         <div className="font-semibold text-text-primary dark:text-text-primary-dark">
-                          Budget: ₦{job.budget.toLocaleString()}
+                          Budget: ₦{Number(job.budget).toLocaleString()}
                         </div>
                       )}
                     </div>

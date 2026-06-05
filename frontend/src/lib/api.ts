@@ -194,6 +194,10 @@ export async function getJob(id: string, token?: string) {
   return apiRequest(`/jobs/${id}/`, token ? { token } : {});
 }
 
+export async function getFeaturedJobs() {
+  return apiRequest('/jobs/featured/');
+}
+
 export async function getJobPublic(id: string) {
   return apiRequest(`/jobs/${id}/public/`);
 }
