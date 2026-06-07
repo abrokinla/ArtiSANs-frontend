@@ -485,6 +485,25 @@ body {
   background: var(--color-rausch-deep);
 }
 
+@media (max-width: 640px) {
+  .search-bar {
+    flex-wrap: wrap;
+  }
+
+  .search-bar svg:first-child {
+    display: none;
+  }
+
+  .search-bar input {
+    min-width: 140px;
+    flex: 1;
+  }
+
+  .search-bar button {
+    flex-shrink: 0;
+  }
+}
+
 /* Navigation */
 .navbar {
   background: var(--color-bg-primary);
